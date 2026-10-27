@@ -1,0 +1,54 @@
+[package]
+name = "wodix"
+description = "A Rust library for reading and searching MDict MDX/MDD dictionaries"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/wodix"
+readme = "README.md"
+keywords = ["mdict", "mdx", "mdd", "dictionary", "parser"]
+categories = ["parser-implementations", "text-processing"]
+publish = ["crates-io"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
+    "src/**",
+    "examples/**",
+    "benches/**",
+    "tests/*.rs",
+    "tests/support/**",
+    "tests/data/basic.mdx",
+    "tests/data/basic.mdd",
+    "tests/README.md",
+]
+
+[dependencies]
+thiserror = { workspace = true }
+tracing = { workspace = true }
+adler = "1"
+encoding_rs = "0.8"
+quick-xml = "0.37"
+memmap2 = "0.9"
+flate2 = "1.1.9"
+ripemd = "0.1"
+lzokay = { version = "2", default-features = false, features = ["decompress", "std"] }
+fst = "0.4"
+unicode-normalization = "0.1"
+blake3 = "1"
+fs2 = "0.4"
+lru = "0.12"
+tempfile = "3.27"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+lzokay = { version = "2", default-features = false, features = ["compress", "std"] }
+same-file = "1"
+
+[[bench]]
+name = "parse"
+harness = false

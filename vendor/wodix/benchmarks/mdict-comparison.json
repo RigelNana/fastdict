@@ -1,0 +1,5933 @@
+{
+  "product": "woyodict",
+  "scope": "comparison only; no production source changes",
+  "peer_revisions": {
+    "mdict-rs": "d4bc67d1128e9561a27b714f085ad970dfed6c09",
+    "mdict-reader": "e25373923035f06156dbfa8aedeb802b5167e6df",
+    "mdict-analysis": "927f91a5746b5de763aeffb54919647634e8099a"
+  },
+  "woyodict_source_sha256": "f3ad8402682a6111dd10de17711b6025753cc68d89f5564b089336a93c20ed00",
+  "woyodict_sources": {
+    "crates/mdict/benches/parse.rs": "3954f7afd6fc4cdab8a6ddd27ed7b2a26abd6be0253881400c370da688256b5f",
+    "crates/mdict/examples/bench_cache.rs": "3f46a61df97cc9ffd2362a184a6b9dec7eb58b4d81588d2f00695a40c45a9fa1",
+    "crates/mdict/examples/lookup_debug.rs": "80685625f47ba39379bb1f371ee49f690fb2ea0b1d279781644cc695d9c74026",
+    "crates/mdict/src/checksum.rs": "46768e8470282119988b6957e3bdb49cd633869a3bd571101a7dbdad2dfc4c53",
+    "crates/mdict/src/decode.rs": "7d08a647c909c57729ecfc86da58f96feb9739ee104bd18454ab1f753b59ff76",
+    "crates/mdict/src/decompress.rs": "7d22cd561871fa43100d55c11bc2cbfcb10c748b47876f6a61491f291f64a436",
+    "crates/mdict/src/decrypt.rs": "e40bba7dfadb8ac1e57f99594e3e32852f4d4cc3fa630828618174642f0a7372",
+    "crates/mdict/src/dict.rs": "368ff83b5a23b3a328cc844123a048c339849b43ffa95a82b6954f11b408213d",
+    "crates/mdict/src/error.rs": "fd4838d54a19e4657537fbc9013d30bde1a59f3432d8f6ea731a0659f2573c3a",
+    "crates/mdict/src/header.rs": "afa0996a79faa6593e9fde479a01d6d1e94aca5669ab1da3573bbc4f4342f3f5",
+    "crates/mdict/src/index.rs": "d1945f81657e4f7d0fe062dfee1f04de432d9304a81e0bf33246ae2598f011bc",
+    "crates/mdict/src/key_block.rs": "8651d0161e1a7f0d1a7ea9919ab9b081248bf24bf41c78f8db668399c8a9bb41",
+    "crates/mdict/src/lib.rs": "007c03cfe6672b52f1a5a52ddbe3646be44b9ea7f7e2270525f25abba5694d20",
+    "crates/mdict/src/link.rs": "a14b0a9086e6980db8501298863796f733c3a09ddd8e5a878cbb3afb407d4dab",
+    "crates/mdict/src/mdd.rs": "cc4413fdd10dcc4a11637dcf32e52da7ded17205ac7012d41748129932884d13",
+    "crates/mdict/src/number.rs": "aed5a2253ce7889474fd76cf762ca1aa9c5e68eaea257a34d0ffc7f3b5d71854",
+    "crates/mdict/src/reader.rs": "0777e9e3ca42e9430898b78e690ffc92ef4e5664ce1a466464e9adfd3bb5e07d",
+    "crates/mdict/src/record_block.rs": "18d19cabeebcf039ef62c3d16a00c4dcd2e92cae4851500c5f088a57284a4135",
+    "crates/mdict/src/stylesheet.rs": "0a49347da9ed704901363b695212f647a9c73321d515c7632a5d9bac6acec2f0",
+    "crates/mdict/src/types.rs": "b7c78b06ef48d3936bb9a6d7e2a9670c89e9e306112e7539cc43cd6c3eeb36dd"
+  },
+  "corpus": {
+    "v1.mdx": {
+      "bytes": 486,
+      "sha256": "5849a625310b4a2e90aa258324882115b1ab9e6a260c617c36ababc80557eb2b"
+    },
+    "big5.mdx": {
+      "bytes": 519,
+      "sha256": "6c18cceaad18169f9c182b8ddc869c844af86387cd1e74ca7ae1be1244e63daf"
+    },
+    "duplicate-offset.mdx": {
+      "bytes": 586,
+      "sha256": "5b89ce4f983b67019f0cbecf9460cd730445ec38b26ebebd9dddde7afff31b09"
+    },
+    "crossblock.mdx": {
+      "bytes": 833,
+      "sha256": "e1d4dc133b2302e42471f699d390dabe5b5ace2cb913f3a32c9f07d1848d9b9f"
+    },
+    "dangling.mdx": {
+      "bytes": 686,
+      "sha256": "2c9d183e4a9bd3459264cc72ba6007d6f12af136dfb069234b6e32188db5eed9"
+    },
+    "duplicates.mdx": {
+      "bytes": 629,
+      "sha256": "3ca2393a308640bf2e0a8d0e813c0844f4870b2ff9aed679043f5c69d92b21a3"
+    },
+    "bench-100000.mdx": {
+      "bytes": 29676061,
+      "sha256": "ea5b68d9d3d33c3aae55351e2aca95d7032e660c01fa3e618559adda8f97e867"
+    },
+    "bench-10000.mdx": {
+      "bytes": 2968271,
+      "sha256": "2522693e52adef8449aaa7877747bbdd13e2a4ca89f2e9f3d326b0920ef511ca"
+    },
+    "encrypted-info.mdx": {
+      "bytes": 520,
+      "sha256": "8b31dbf2149f29b0133ed9b2b92d30298cc80dadd633ce01219209d197c4e043"
+    }
+  },
+  "environment": {
+    "cpu": "Intel Core Ultra 5 228V",
+    "logical_cpu_affinity": [
+      2
+    ],
+    "governor": "powersave",
+    "ram_kib": 32362508,
+    "rustc": "1.97.1",
+    "python": "3.14.7",
+    "profile": "release opt-level=3 codegen-units=1 lto=thin",
+    "process_address_space_limit_bytes": 1073741824
+  },
+  "methodology": {
+    "datasets_entries": [
+      10000,
+      100000
+    ],
+    "record_bytes_with_nul": 512,
+    "decoded_text_bytes": 511,
+    "record_block_bytes": 65536,
+    "key_block_entries": 512,
+    "compression": "zlib",
+    "cache": "warm OS page cache, fresh process for every run",
+    "parallelism": "sequential workloads, rotating engine order",
+    "open_trials": 9,
+    "lookup_trials": 5,
+    "scan_trials": 3,
+    "lookups_per_trial_per_pattern": 1000,
+    "lookup_patterns": [
+      "repeated identical midpoint key",
+      "deterministic pseudorandom keys"
+    ],
+    "open_time_excludes_process_start": true,
+    "woyodict_index_mode": "Reader::open + Index::build; no asynchronous sidecar writes",
+    "scan_mode": "native record iteration; woyodict uses Reader::record for each entry",
+    "scan_sink": "count records and sum decoded byte lengths; same total checked",
+    "not_measured": [
+      "storage-cold starts",
+      "large licensed commercial corpus",
+      "files over 4 GB",
+      "cross-platform performance",
+      "multi-threaded workloads",
+      "js-mdict runtime speed"
+    ],
+    "cached_open_trials": 9,
+    "cached_open_setup": "Synchronous cache save in a discarded priming process; each measured open loads a valid version-2 sidecar.",
+    "synthetic_header_note": "All measured corpora use null-terminated UTF-16LE XML headers, accepted by all four executed implementations.",
+    "lookup_statistic": "Per trial, p50/p95 of 1000 successful complete text lookups; reported values are medians across five trials.",
+    "scan_statistic": "Median of three full extractions after a shared first-record probe; first-record probe time excluded from scan_ms.",
+    "rss_statistic": "Process VmRSS/VmHWM from /proc/self/status; includes runtime and reclaimable mmap pages, not heap-only usage."
+  },
+  "counterexamples": {
+    "actual_zlib_output": 1048576,
+    "cycle_lookup": [],
+    "dangling_lookup": [],
+    "declared_block_size": 1,
+    "direct_chain_dangling": "@@@LINK=missing",
+    "fuzzy_a_limit2": [
+      "aa"
+    ],
+    "prefix_a_limit2": [
+      "aa"
+    ],
+    "public_field_mutation": {
+      "before": [
+        "AB"
+      ],
+      "lookup_ab": [
+        "AB"
+      ],
+      "prefix_ab": [
+        "renamed"
+      ],
+      "prefix_renamed": []
+    },
+    "same_stamp_cache": {
+      "new": [],
+      "old": [
+        0
+      ]
+    }
+  },
+  "ratios_100k": {
+    "random_lookup_advantage": 1.962360741866059,
+    "repeat_lookup_penalty": 2.1226262038956047,
+    "scan_penalty_vs_lazy": 79.58212741334957,
+    "scan_penalty_vs_stream": 119.9007233613122,
+    "scan_penalty_vs_python": 78.3476916364303
+  },
+  "summary": [
+    {
+      "size": 10000,
+      "mode": "lookup",
+      "engine": "lazy",
+      "trials": 5,
+      "open_ms": 0.042230000000000004,
+      "open_plus_first_ms": 0.6503660000000001,
+      "open_delta_rss_mib": 0.28125,
+      "peak_rss_mib": 3.73046875,
+      "repeat": {
+        "p50_us": 107.48,
+        "p95_us": 132.778,
+        "mean_us": 111.687835
+      },
+      "random": {
+        "p50_us": 490.965,
+        "p95_us": 553.063,
+        "mean_us": 492.566461
+      }
+    },
+    {
+      "size": 10000,
+      "mode": "lookup",
+      "engine": "woyo-index",
+      "trials": 5,
+      "open_ms": 3.6074129999999998,
+      "open_plus_first_ms": 3.866428,
+      "open_delta_rss_mib": 2.89453125,
+      "peak_rss_mib": 8.69921875,
+      "repeat": {
+        "p50_us": 227.193,
+        "p95_us": 274.44,
+        "mean_us": 234.686683
+      },
+      "random": {
+        "p50_us": 249.303,
+        "p95_us": 294.913,
+        "mean_us": 255.629491
+      }
+    },
+    {
+      "size": 10000,
+      "mode": "open",
+      "engine": "lazy",
+      "trials": 9,
+      "open_ms": 0.044105,
+      "open_plus_first_ms": 0.5454450000000001,
+      "open_delta_rss_mib": 0.33984375,
+      "peak_rss_mib": 3.453125
+    },
+    {
+      "size": 10000,
+      "mode": "open",
+      "engine": "python",
+      "trials": 9,
+      "open_ms": 13.703092,
+      "open_plus_first_ms": 14.239672,
+      "open_delta_rss_mib": 1.75390625,
+      "peak_rss_mib": 18.28125
+    },
+    {
+      "size": 10000,
+      "mode": "open",
+      "engine": "stream",
+      "trials": 9,
+      "open_ms": 0.093058,
+      "open_plus_first_ms": 0.4467,
+      "open_delta_rss_mib": 0.58203125,
+      "peak_rss_mib": 3.67578125
+    },
+    {
+      "size": 10000,
+      "mode": "open",
+      "engine": "woyo-cached",
+      "trials": 9,
+      "open_ms": 1.5739400000000001,
+      "open_plus_first_ms": 1.8571630000000001,
+      "open_delta_rss_mib": 2.515625,
+      "peak_rss_mib": 5.6328125
+    },
+    {
+      "size": 10000,
+      "mode": "open",
+      "engine": "woyo-index",
+      "trials": 9,
+      "open_ms": 3.5176119999999997,
+      "open_plus_first_ms": 3.7835039999999998,
+      "open_delta_rss_mib": 2.95703125,
+      "peak_rss_mib": 7.06640625
+    },
+    {
+      "size": 10000,
+      "mode": "open",
+      "engine": "woyo-reader",
+      "trials": 9,
+      "open_ms": 1.1586910000000001,
+      "open_plus_first_ms": 1.4509420000000002,
+      "open_delta_rss_mib": 1.84765625,
+      "peak_rss_mib": 5.00390625
+    },
+    {
+      "size": 10000,
+      "mode": "scan",
+      "engine": "lazy",
+      "trials": 3,
+      "open_ms": 0.04808,
+      "open_plus_first_ms": 0.540744,
+      "open_delta_rss_mib": 0.28125,
+      "peak_rss_mib": 3.4609375,
+      "scan_ms": 31.988662,
+      "total_ms": 32.043775000000004,
+      "scan_min_ms": 31.101875,
+      "scan_max_ms": 32.246052999999996
+    },
+    {
+      "size": 10000,
+      "mode": "scan",
+      "engine": "python",
+      "trials": 3,
+      "open_ms": 13.448891,
+      "open_plus_first_ms": 13.975793,
+      "open_delta_rss_mib": 1.75390625,
+      "peak_rss_mib": 18.296875,
+      "scan_ms": 33.551333,
+      "total_ms": 47.261087,
+      "scan_min_ms": 33.304719,
+      "scan_max_ms": 33.812196
+    },
+    {
+      "size": 10000,
+      "mode": "scan",
+      "engine": "stream",
+      "trials": 3,
+      "open_ms": 0.09734,
+      "open_plus_first_ms": 0.432111,
+      "open_delta_rss_mib": 0.64453125,
+      "peak_rss_mib": 3.6796875,
+      "scan_ms": 21.193618,
+      "total_ms": 21.284844,
+      "scan_min_ms": 21.000405,
+      "scan_max_ms": 22.141351
+    },
+    {
+      "size": 10000,
+      "mode": "scan",
+      "engine": "woyo-reader",
+      "trials": 3,
+      "open_ms": 1.116374,
+      "open_plus_first_ms": 1.4505139999999999,
+      "open_delta_rss_mib": 1.91015625,
+      "peak_rss_mib": 7.77734375,
+      "scan_ms": 2556.597196,
+      "total_ms": 2557.742769,
+      "scan_min_ms": 2535.91658,
+      "scan_max_ms": 2557.70363
+    },
+    {
+      "size": 100000,
+      "mode": "lookup",
+      "engine": "lazy",
+      "trials": 5,
+      "open_ms": 0.112791,
+      "open_plus_first_ms": 0.714059,
+      "open_delta_rss_mib": 0.359375,
+      "peak_rss_mib": 3.79296875,
+      "repeat": {
+        "p50_us": 106.633,
+        "p95_us": 132.183,
+        "mean_us": 110.872193
+      },
+      "random": {
+        "p50_us": 496.022,
+        "p95_us": 553.327,
+        "mean_us": 502.537804
+      }
+    },
+    {
+      "size": 100000,
+      "mode": "lookup",
+      "engine": "woyo-index",
+      "trials": 5,
+      "open_ms": 29.996608000000002,
+      "open_plus_first_ms": 30.273651,
+      "open_delta_rss_mib": 21.1171875,
+      "peak_rss_mib": 50.74609375,
+      "repeat": {
+        "p50_us": 226.342,
+        "p95_us": 262.719,
+        "mean_us": 232.032793
+      },
+      "random": {
+        "p50_us": 252.768,
+        "p95_us": 294.909,
+        "mean_us": 258.938498
+      }
+    },
+    {
+      "size": 100000,
+      "mode": "open",
+      "engine": "lazy",
+      "trials": 9,
+      "open_ms": 0.114671,
+      "open_plus_first_ms": 0.650497,
+      "open_delta_rss_mib": 0.41796875,
+      "peak_rss_mib": 3.53125
+    },
+    {
+      "size": 100000,
+      "mode": "open",
+      "engine": "python",
+      "trials": 9,
+      "open_ms": 131.382619,
+      "open_plus_first_ms": 132.073918,
+      "open_delta_rss_mib": 15.05078125,
+      "peak_rss_mib": 31.4921875
+    },
+    {
+      "size": 100000,
+      "mode": "open",
+      "engine": "stream",
+      "trials": 9,
+      "open_ms": 0.11100499999999999,
+      "open_plus_first_ms": 0.471773,
+      "open_delta_rss_mib": 0.78125,
+      "peak_rss_mib": 3.85546875
+    },
+    {
+      "size": 100000,
+      "mode": "open",
+      "engine": "woyo-cached",
+      "trials": 9,
+      "open_ms": 13.821976999999999,
+      "open_plus_first_ms": 14.149195999999998,
+      "open_delta_rss_mib": 16.51953125,
+      "peak_rss_mib": 20.25
+    },
+    {
+      "size": 100000,
+      "mode": "open",
+      "engine": "woyo-index",
+      "trials": 9,
+      "open_ms": 30.115952,
+      "open_plus_first_ms": 30.38579,
+      "open_delta_rss_mib": 21.1796875,
+      "peak_rss_mib": 27.0546875
+    },
+    {
+      "size": 100000,
+      "mode": "open",
+      "engine": "woyo-reader",
+      "trials": 9,
+      "open_ms": 9.370692,
+      "open_plus_first_ms": 9.702036,
+      "open_delta_rss_mib": 11.16796875,
+      "peak_rss_mib": 14.34375
+    },
+    {
+      "size": 100000,
+      "mode": "scan",
+      "engine": "lazy",
+      "trials": 3,
+      "open_ms": 0.112387,
+      "open_plus_first_ms": 0.602746,
+      "open_delta_rss_mib": 0.41796875,
+      "peak_rss_mib": 3.515625,
+      "scan_ms": 322.49016400000005,
+      "total_ms": 322.60255100000006,
+      "scan_min_ms": 322.329536,
+      "scan_max_ms": 323.083493
+    },
+    {
+      "size": 100000,
+      "mode": "scan",
+      "engine": "python",
+      "trials": 3,
+      "open_ms": 131.97838,
+      "open_plus_first_ms": 132.69773199999997,
+      "open_delta_rss_mib": 15.05078125,
+      "peak_rss_mib": 31.609375,
+      "scan_ms": 327.571276,
+      "total_ms": 460.653101,
+      "scan_min_ms": 326.933102,
+      "scan_max_ms": 328.767908
+    },
+    {
+      "size": 100000,
+      "mode": "scan",
+      "engine": "stream",
+      "trials": 3,
+      "open_ms": 0.120776,
+      "open_plus_first_ms": 0.511307,
+      "open_delta_rss_mib": 0.59375,
+      "peak_rss_mib": 3.734375,
+      "scan_ms": 214.04752699999997,
+      "total_ms": 214.16830299999998,
+      "scan_min_ms": 212.755384,
+      "scan_max_ms": 214.4865
+    },
+    {
+      "size": 100000,
+      "mode": "scan",
+      "engine": "woyo-reader",
+      "trials": 3,
+      "open_ms": 9.546116,
+      "open_plus_first_ms": 9.894278,
+      "open_delta_rss_mib": 11.35546875,
+      "peak_rss_mib": 42.20703125,
+      "scan_ms": 25664.453321,
+      "total_ms": 25673.999437000002,
+      "scan_min_ms": 25583.891117,
+      "scan_max_ms": 25688.867019
+    }
+  ],
+  "measurements": [
+    {
+      "before_kib": {
+        "VmHWM": 2888,
+        "VmRSS": 2888
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5164,
+        "VmRSS": 5164
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.336945,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5036,
+        "VmRSS": 5036
+      },
+      "open_ms": 1.252026,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7236,
+        "VmRSS": 6068
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.267562,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7236,
+        "VmRSS": 6004
+      },
+      "open_ms": 3.595876,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2912,
+        "VmRSS": 2912
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3544,
+        "VmRSS": 3544
+      },
+      "engine": "lazy",
+      "first_ms": 0.5132789999999999,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3328,
+        "VmRSS": 3328
+      },
+      "open_ms": 0.051851999999999995,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3108,
+        "VmRSS": 3108
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3764,
+        "VmRSS": 3764
+      },
+      "engine": "stream",
+      "first_ms": 0.35502199999999995,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3640,
+        "VmRSS": 3640
+      },
+      "open_ms": 0.10777500000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.135935,
+      "first_ms": 0.521987,
+      "before_kib": {
+        "VmHWM": 16680,
+        "VmRSS": 16680
+      },
+      "open_kib": {
+        "VmHWM": 18476,
+        "VmRSS": 18476
+      },
+      "end_kib": {
+        "VmHWM": 18720,
+        "VmRSS": 18720
+      },
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7300,
+        "VmRSS": 6200
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.255873,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7300,
+        "VmRSS": 6072
+      },
+      "open_ms": 3.4551439999999998,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3608,
+        "VmRSS": 3608
+      },
+      "engine": "lazy",
+      "first_ms": 0.501793,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3392,
+        "VmRSS": 3392
+      },
+      "open_ms": 0.043652,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3020,
+        "VmRSS": 3020
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3760,
+        "VmRSS": 3740
+      },
+      "engine": "stream",
+      "first_ms": 0.327783,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3616,
+        "VmRSS": 3616
+      },
+      "open_ms": 0.079678,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.494872,
+      "first_ms": 0.560548,
+      "before_kib": {
+        "VmHWM": 16684,
+        "VmRSS": 16684
+      },
+      "open_kib": {
+        "VmHWM": 18480,
+        "VmRSS": 18480
+      },
+      "end_kib": {
+        "VmHWM": 18724,
+        "VmRSS": 18724
+      },
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3032,
+        "VmRSS": 3032
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5116,
+        "VmRSS": 5116
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.294146,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 4924,
+        "VmRSS": 4924
+      },
+      "open_ms": 1.09485,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3104,
+        "VmRSS": 3104
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3608,
+        "VmRSS": 3608
+      },
+      "engine": "lazy",
+      "first_ms": 0.486397,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3392,
+        "VmRSS": 3392
+      },
+      "open_ms": 0.037620999999999995,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2972,
+        "VmRSS": 2972
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3820,
+        "VmRSS": 3820
+      },
+      "engine": "stream",
+      "first_ms": 0.38377,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3632,
+        "VmRSS": 3632
+      },
+      "open_ms": 0.07890699999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 14.13381,
+      "first_ms": 0.580926,
+      "before_kib": {
+        "VmHWM": 16568,
+        "VmRSS": 16568
+      },
+      "open_kib": {
+        "VmHWM": 18368,
+        "VmRSS": 18368
+      },
+      "end_kib": {
+        "VmHWM": 18612,
+        "VmRSS": 18612
+      },
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5192,
+        "VmRSS": 5192
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.395302,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5064,
+        "VmRSS": 5064
+      },
+      "open_ms": 1.2177,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3028,
+        "VmRSS": 3028
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7220,
+        "VmRSS": 6056
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.297178,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7220,
+        "VmRSS": 5992
+      },
+      "open_ms": 3.531158,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3104,
+        "VmRSS": 3104
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3760,
+        "VmRSS": 3760
+      },
+      "engine": "stream",
+      "first_ms": 0.33229400000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3636,
+        "VmRSS": 3636
+      },
+      "open_ms": 0.108957,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.742835,
+      "first_ms": 0.569223,
+      "before_kib": {
+        "VmHWM": 16684,
+        "VmRSS": 16684
+      },
+      "open_kib": {
+        "VmHWM": 18480,
+        "VmRSS": 18480
+      },
+      "end_kib": {
+        "VmHWM": 18724,
+        "VmRSS": 18724
+      },
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3104,
+        "VmRSS": 3104
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5124,
+        "VmRSS": 5124
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.295733,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 4932,
+        "VmRSS": 4932
+      },
+      "open_ms": 1.1858360000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7300,
+        "VmRSS": 6196
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.293304,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7300,
+        "VmRSS": 6068
+      },
+      "open_ms": 3.509382,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2888,
+        "VmRSS": 2888
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3520,
+        "VmRSS": 3520
+      },
+      "engine": "lazy",
+      "first_ms": 0.465115,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3304,
+        "VmRSS": 3304
+      },
+      "open_ms": 0.043629,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.703092,
+      "first_ms": 0.53658,
+      "before_kib": {
+        "VmHWM": 16664,
+        "VmRSS": 16664
+      },
+      "open_kib": {
+        "VmHWM": 18460,
+        "VmRSS": 18460
+      },
+      "end_kib": {
+        "VmHWM": 18704,
+        "VmRSS": 18704
+      },
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3104,
+        "VmRSS": 3104
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5124,
+        "VmRSS": 5124
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.29075999999999996,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 4932,
+        "VmRSS": 4932
+      },
+      "open_ms": 1.093084,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2964,
+        "VmRSS": 2964
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7284,
+        "VmRSS": 6120
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.296394,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7284,
+        "VmRSS": 6056
+      },
+      "open_ms": 3.597571,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3536,
+        "VmRSS": 3536
+      },
+      "engine": "lazy",
+      "first_ms": 0.480412,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3320,
+        "VmRSS": 3320
+      },
+      "open_ms": 0.044105,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3764,
+        "VmRSS": 3764
+      },
+      "engine": "stream",
+      "first_ms": 0.368785,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3640,
+        "VmRSS": 3640
+      },
+      "open_ms": 0.093058,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3088,
+        "VmRSS": 3088
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5108,
+        "VmRSS": 5108
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.292251,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 4916,
+        "VmRSS": 4916
+      },
+      "open_ms": 1.1586910000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2912,
+        "VmRSS": 2912
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7168,
+        "VmRSS": 6132
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.253973,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7168,
+        "VmRSS": 6068
+      },
+      "open_ms": 3.484181,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2968,
+        "VmRSS": 2968
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3532,
+        "VmRSS": 3532
+      },
+      "engine": "lazy",
+      "first_ms": 0.520445,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3316,
+        "VmRSS": 3316
+      },
+      "open_ms": 0.038927,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3108,
+        "VmRSS": 3108
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3764,
+        "VmRSS": 3764
+      },
+      "engine": "stream",
+      "first_ms": 0.337926,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3640,
+        "VmRSS": 3640
+      },
+      "open_ms": 0.108774,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 14.236337,
+      "first_ms": 0.622679,
+      "before_kib": {
+        "VmHWM": 16676,
+        "VmRSS": 16676
+      },
+      "open_kib": {
+        "VmHWM": 18476,
+        "VmRSS": 18476
+      },
+      "end_kib": {
+        "VmHWM": 18720,
+        "VmRSS": 18720
+      },
+      "size": 10000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3096,
+        "VmRSS": 3096
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7164,
+        "VmRSS": 6124
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.252097,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7164,
+        "VmRSS": 5996
+      },
+      "open_ms": 3.5314069999999997,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3604,
+        "VmRSS": 3604
+      },
+      "engine": "lazy",
+      "first_ms": 0.487051,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3388,
+        "VmRSS": 3388
+      },
+      "open_ms": 0.050953,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3104,
+        "VmRSS": 3104
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3760,
+        "VmRSS": 3760
+      },
+      "engine": "stream",
+      "first_ms": 0.318054,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3636,
+        "VmRSS": 3636
+      },
+      "open_ms": 0.08622200000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 14.615786,
+      "first_ms": 0.528295,
+      "before_kib": {
+        "VmHWM": 16652,
+        "VmRSS": 16652
+      },
+      "open_kib": {
+        "VmHWM": 18452,
+        "VmRSS": 18452
+      },
+      "end_kib": {
+        "VmHWM": 18696,
+        "VmRSS": 18696
+      },
+      "size": 10000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5188,
+        "VmRSS": 5188
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.30015800000000004,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 4996,
+        "VmRSS": 4996
+      },
+      "open_ms": 1.127225,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3528,
+        "VmRSS": 3528
+      },
+      "engine": "lazy",
+      "first_ms": 0.5126160000000001,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3312,
+        "VmRSS": 3312
+      },
+      "open_ms": 0.048634000000000004,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2960,
+        "VmRSS": 2960
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3744,
+        "VmRSS": 3744
+      },
+      "engine": "stream",
+      "first_ms": 0.336198,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3620,
+        "VmRSS": 3620
+      },
+      "open_ms": 0.094149,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.475481,
+      "first_ms": 0.510186,
+      "before_kib": {
+        "VmHWM": 16676,
+        "VmRSS": 16676
+      },
+      "open_kib": {
+        "VmHWM": 18476,
+        "VmRSS": 18476
+      },
+      "end_kib": {
+        "VmHWM": 18720,
+        "VmRSS": 18720
+      },
+      "size": 10000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5120,
+        "VmRSS": 5120
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.31877700000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 4928,
+        "VmRSS": 4928
+      },
+      "open_ms": 1.1793500000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7292,
+        "VmRSS": 6192
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.258928,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7292,
+        "VmRSS": 6064
+      },
+      "open_ms": 3.5176119999999997,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3888,
+        "VmRSS": 3888
+      },
+      "engine": "stream",
+      "first_ms": 0.426429,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3828,
+        "VmRSS": 3828
+      },
+      "open_ms": 0.084767,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.545466,
+      "first_ms": 0.531666,
+      "before_kib": {
+        "VmHWM": 16684,
+        "VmRSS": 16684
+      },
+      "open_kib": {
+        "VmHWM": 18480,
+        "VmRSS": 18480
+      },
+      "end_kib": {
+        "VmHWM": 18724,
+        "VmRSS": 18724
+      },
+      "size": 10000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2912,
+        "VmRSS": 2912
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5192,
+        "VmRSS": 5192
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.293047,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5064,
+        "VmRSS": 5064
+      },
+      "open_ms": 1.118313,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2916,
+        "VmRSS": 2916
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7236,
+        "VmRSS": 6136
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.258827,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 7236,
+        "VmRSS": 6072
+      },
+      "open_ms": 3.391254,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2964,
+        "VmRSS": 2964
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3468,
+        "VmRSS": 3468
+      },
+      "engine": "lazy",
+      "first_ms": 0.5762029999999999,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3316,
+        "VmRSS": 3316
+      },
+      "open_ms": 0.055274,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "size": 10000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 8904,
+        "VmRSS": 8904
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.301782,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 7172,
+        "VmRSS": 6004
+      },
+      "open_ms": 3.497381,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 255.629491,
+        "p50_us": 249.286,
+        "p95_us": 294.913,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 236.48469599999999,
+        "p50_us": 227.99,
+        "p95_us": 275.627,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3028,
+        "VmRSS": 3028
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3820,
+        "VmRSS": 3820
+      },
+      "engine": "lazy",
+      "first_ms": 0.609604,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3316,
+        "VmRSS": 3316
+      },
+      "open_ms": 0.038652,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 494.657847,
+        "p50_us": 492.074,
+        "p95_us": 561.358,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 110.246318,
+        "p50_us": 106.903,
+        "p95_us": 130.642,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3832,
+        "VmRSS": 3832
+      },
+      "engine": "lazy",
+      "first_ms": 0.6020300000000001,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3328,
+        "VmRSS": 3328
+      },
+      "open_ms": 0.048336,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 492.566461,
+        "p50_us": 490.965,
+        "p95_us": 551.7,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 111.687835,
+        "p50_us": 107.858,
+        "p95_us": 132.778,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 8900,
+        "VmRSS": 8900
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.25901500000000005,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 7100,
+        "VmRSS": 6000
+      },
+      "open_ms": 3.6074129999999998,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 253.522288,
+        "p50_us": 246.654,
+        "p95_us": 289.493,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 234.686683,
+        "p50_us": 227.193,
+        "p95_us": 274.44,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 8908,
+        "VmRSS": 8908
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.25748,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 7104,
+        "VmRSS": 6008
+      },
+      "open_ms": 3.6659539999999997,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 255.397136,
+        "p50_us": 249.303,
+        "p95_us": 290.652,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 231.88487400000002,
+        "p50_us": 225.408,
+        "p95_us": 272.063,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2904,
+        "VmRSS": 2904
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3820,
+        "VmRSS": 3820
+      },
+      "engine": "lazy",
+      "first_ms": 0.624923,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3316,
+        "VmRSS": 3316
+      },
+      "open_ms": 0.03938199999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 494.35958500000004,
+        "p50_us": 491.783,
+        "p95_us": 555.929,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 112.34826,
+        "p50_us": 107.984,
+        "p95_us": 132.872,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3828,
+        "VmRSS": 3828
+      },
+      "engine": "lazy",
+      "first_ms": 0.577016,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3324,
+        "VmRSS": 3324
+      },
+      "open_ms": 0.043371,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 491.346207,
+        "p50_us": 489.752,
+        "p95_us": 551.45,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 111.934595,
+        "p50_us": 107.48,
+        "p95_us": 133.746,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3108,
+        "VmRSS": 3108
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 8972,
+        "VmRSS": 8972
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.269089,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 7104,
+        "VmRSS": 6008
+      },
+      "open_ms": 3.5727599999999997,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 257.67183,
+        "p50_us": 249.556,
+        "p95_us": 300.791,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 236.546992,
+        "p50_us": 229.482,
+        "p95_us": 276.645,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 8968,
+        "VmRSS": 8968
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.267054,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 7296,
+        "VmRSS": 6132
+      },
+      "open_ms": 3.666256,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 257.399208,
+        "p50_us": 250.386,
+        "p95_us": 296.078,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 233.53156099999998,
+        "p50_us": 225.428,
+        "p95_us": 273.338,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2972,
+        "VmRSS": 2972
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3760,
+        "VmRSS": 3760
+      },
+      "engine": "lazy",
+      "first_ms": 0.643812,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3320,
+        "VmRSS": 3320
+      },
+      "open_ms": 0.042230000000000004,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 489.973065,
+        "p50_us": 487.198,
+        "p95_us": 553.063,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 109.803204,
+        "p50_us": 106.99,
+        "p95_us": 129.226,
+        "queries": 1000
+      },
+      "size": 10000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7896,
+        "VmRSS": 7896
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.30620400000000003,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 4932,
+        "VmRSS": 4932
+      },
+      "open_ms": 1.108098,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 2557.70363,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3584,
+        "VmRSS": 3540
+      },
+      "engine": "lazy",
+      "first_ms": 0.492664,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3328,
+        "VmRSS": 3328
+      },
+      "open_ms": 0.04808,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 31.101875,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2916,
+        "VmRSS": 2916
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3832,
+        "VmRSS": 3832
+      },
+      "engine": "stream",
+      "first_ms": 0.321926,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3704,
+        "VmRSS": 3704
+      },
+      "open_ms": 0.09734,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 21.000405,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "scan",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.14227,
+      "first_ms": 0.556638,
+      "before_kib": {
+        "VmHWM": 16680,
+        "VmRSS": 16680
+      },
+      "open_kib": {
+        "VmHWM": 18476,
+        "VmRSS": 18476
+      },
+      "scan_ms": 33.304719,
+      "scanned": 10000,
+      "bytes": 5110000,
+      "end_kib": {
+        "VmHWM": 18676,
+        "VmRSS": 18676
+      },
+      "size": 10000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3544,
+        "VmRSS": 3544
+      },
+      "engine": "lazy",
+      "first_ms": 0.501521,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3332,
+        "VmRSS": 3332
+      },
+      "open_ms": 0.055113,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 31.988662,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2968,
+        "VmRSS": 2968
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3756,
+        "VmRSS": 3756
+      },
+      "engine": "stream",
+      "first_ms": 0.34088500000000005,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3628,
+        "VmRSS": 3628
+      },
+      "open_ms": 0.091226,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 21.193618,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "scan",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.771676,
+      "first_ms": 0.552284,
+      "before_kib": {
+        "VmHWM": 16640,
+        "VmRSS": 16640
+      },
+      "open_kib": {
+        "VmHWM": 18440,
+        "VmRSS": 18440
+      },
+      "scan_ms": 33.551333,
+      "scanned": 10000,
+      "bytes": 5110000,
+      "end_kib": {
+        "VmHWM": 18736,
+        "VmRSS": 18640
+      },
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 8092,
+        "VmRSS": 8092
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.30494099999999996,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 5192,
+        "VmRSS": 5192
+      },
+      "open_ms": 1.145573,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 2556.597196,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3108,
+        "VmRSS": 3108
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3768,
+        "VmRSS": 3768
+      },
+      "engine": "stream",
+      "first_ms": 0.423292,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3640,
+        "VmRSS": 3640
+      },
+      "open_ms": 0.116873,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 22.141351,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "scan",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "count": 10000,
+      "open_ms": 13.448891,
+      "first_ms": 0.526902,
+      "before_kib": {
+        "VmHWM": 16644,
+        "VmRSS": 16644
+      },
+      "open_kib": {
+        "VmHWM": 18440,
+        "VmRSS": 18440
+      },
+      "scan_ms": 33.812196,
+      "scanned": 10000,
+      "bytes": 5110000,
+      "end_kib": {
+        "VmHWM": 18736,
+        "VmRSS": 18640
+      },
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 7964,
+        "VmRSS": 7964
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.345491,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 5000,
+        "VmRSS": 5000
+      },
+      "open_ms": 1.116374,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 2535.91658,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "bytes": 5110000,
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 3500,
+        "VmRSS": 3456
+      },
+      "engine": "lazy",
+      "first_ms": 0.489754,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3244,
+        "VmRSS": 3244
+      },
+      "open_ms": 0.036457,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "scan_ms": 32.246052999999996,
+      "scanned": 10000,
+      "size": 10000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3028,
+        "VmRSS": 3028
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14808,
+        "VmRSS": 14808
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.318349,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14656,
+        "VmRSS": 14656
+      },
+      "open_ms": 9.302197,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 27632,
+        "VmRSS": 24640
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.263404,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 27632,
+        "VmRSS": 24576
+      },
+      "open_ms": 29.677084,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3560,
+        "VmRSS": 3560
+      },
+      "engine": "lazy",
+      "first_ms": 0.538308,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3412,
+        "VmRSS": 3412
+      },
+      "open_ms": 0.126756,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3932,
+        "VmRSS": 3932
+      },
+      "engine": "stream",
+      "first_ms": 0.369714,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3824,
+        "VmRSS": 3824
+      },
+      "open_ms": 0.129058,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 129.099275,
+      "first_ms": 0.681915,
+      "before_kib": {
+        "VmHWM": 16648,
+        "VmRSS": 16648
+      },
+      "open_kib": {
+        "VmHWM": 32184,
+        "VmRSS": 32060
+      },
+      "end_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32216
+      },
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 28076,
+        "VmRSS": 25080
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.262099,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 28076,
+        "VmRSS": 24952
+      },
+      "open_ms": 29.941537,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2972,
+        "VmRSS": 2972
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3612,
+        "VmRSS": 3612
+      },
+      "engine": "lazy",
+      "first_ms": 0.492887,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3400,
+        "VmRSS": 3400
+      },
+      "open_ms": 0.112615,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3952,
+        "VmRSS": 3952
+      },
+      "engine": "stream",
+      "first_ms": 0.34322600000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3780,
+        "VmRSS": 3780
+      },
+      "open_ms": 0.103735,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 130.165846,
+      "first_ms": 0.709477,
+      "before_kib": {
+        "VmHWM": 16656,
+        "VmRSS": 16656
+      },
+      "open_kib": {
+        "VmHWM": 32188,
+        "VmRSS": 32068
+      },
+      "end_kib": {
+        "VmHWM": 32224,
+        "VmRSS": 32224
+      },
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2916,
+        "VmRSS": 2916
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14760,
+        "VmRSS": 14760
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.320677,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14608,
+        "VmRSS": 14608
+      },
+      "open_ms": 9.647857,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3620,
+        "VmRSS": 3620
+      },
+      "engine": "lazy",
+      "first_ms": 0.484437,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3408,
+        "VmRSS": 3408
+      },
+      "open_ms": 0.14812,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2976,
+        "VmRSS": 2976
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3948,
+        "VmRSS": 3948
+      },
+      "engine": "stream",
+      "first_ms": 0.337885,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3776,
+        "VmRSS": 3776
+      },
+      "open_ms": 0.101974,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 130.185871,
+      "first_ms": 0.668191,
+      "before_kib": {
+        "VmHWM": 16676,
+        "VmRSS": 16676
+      },
+      "open_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32092
+      },
+      "end_kib": {
+        "VmHWM": 32248,
+        "VmRSS": 32248
+      },
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3008,
+        "VmRSS": 3008
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14596,
+        "VmRSS": 14596
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.319509,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14380,
+        "VmRSS": 14380
+      },
+      "open_ms": 9.126657999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2956,
+        "VmRSS": 2956
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 28280,
+        "VmRSS": 25220
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.278264,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 28280,
+        "VmRSS": 25156
+      },
+      "open_ms": 29.804371,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3944,
+        "VmRSS": 3944
+      },
+      "engine": "stream",
+      "first_ms": 0.34325300000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3772,
+        "VmRSS": 3772
+      },
+      "open_ms": 0.130772,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 131.382619,
+      "first_ms": 0.691299,
+      "before_kib": {
+        "VmHWM": 16684,
+        "VmRSS": 16684
+      },
+      "open_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32096
+      },
+      "end_kib": {
+        "VmHWM": 32252,
+        "VmRSS": 32252
+      },
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2972,
+        "VmRSS": 2972
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14688,
+        "VmRSS": 14688
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.321812,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14536,
+        "VmRSS": 14536
+      },
+      "open_ms": 9.309796,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 27704,
+        "VmRSS": 24708
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.270488,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 27704,
+        "VmRSS": 24580
+      },
+      "open_ms": 30.580371,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2904,
+        "VmRSS": 2904
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3612,
+        "VmRSS": 3612
+      },
+      "engine": "lazy",
+      "first_ms": 0.544165,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3400,
+        "VmRSS": 3400
+      },
+      "open_ms": 0.106332,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 131.647737,
+      "first_ms": 0.675617,
+      "before_kib": {
+        "VmHWM": 16684,
+        "VmRSS": 16684
+      },
+      "open_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32096
+      },
+      "end_kib": {
+        "VmHWM": 32248,
+        "VmRSS": 32248
+      },
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14624,
+        "VmRSS": 14624
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.331344,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14408,
+        "VmRSS": 14408
+      },
+      "open_ms": 9.370692,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 27648,
+        "VmRSS": 24668
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.27453500000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 27648,
+        "VmRSS": 24604
+      },
+      "open_ms": 30.352455,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3616,
+        "VmRSS": 3616
+      },
+      "engine": "lazy",
+      "first_ms": 0.511118,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3404,
+        "VmRSS": 3404
+      },
+      "open_ms": 0.112631,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3824,
+        "VmRSS": 3824
+      },
+      "engine": "stream",
+      "first_ms": 0.34182599999999996,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3652,
+        "VmRSS": 3652
+      },
+      "open_ms": 0.09932700000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14824,
+        "VmRSS": 14824
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.351213,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14672,
+        "VmRSS": 14672
+      },
+      "open_ms": 9.751035,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 28172,
+        "VmRSS": 25244
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.26541200000000004,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 28172,
+        "VmRSS": 25116
+      },
+      "open_ms": 30.773296,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3664,
+        "VmRSS": 3664
+      },
+      "engine": "lazy",
+      "first_ms": 0.508977,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3452,
+        "VmRSS": 3452
+      },
+      "open_ms": 0.115913,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2976,
+        "VmRSS": 2976
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3952,
+        "VmRSS": 3952
+      },
+      "engine": "stream",
+      "first_ms": 0.35902900000000004,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3776,
+        "VmRSS": 3776
+      },
+      "open_ms": 0.117785,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 133.527064,
+      "first_ms": 0.688438,
+      "before_kib": {
+        "VmHWM": 16680,
+        "VmRSS": 16680
+      },
+      "open_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32096
+      },
+      "end_kib": {
+        "VmHWM": 32252,
+        "VmRSS": 32252
+      },
+      "size": 100000,
+      "trial": 5,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2904,
+        "VmRSS": 2904
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 27704,
+        "VmRSS": 24656
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.26428999999999997,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 27704,
+        "VmRSS": 24592
+      },
+      "open_ms": 30.736950999999998,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3032,
+        "VmRSS": 3032
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3672,
+        "VmRSS": 3672
+      },
+      "engine": "lazy",
+      "first_ms": 0.540109,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3460,
+        "VmRSS": 3460
+      },
+      "open_ms": 0.114671,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2916,
+        "VmRSS": 2916
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3952,
+        "VmRSS": 3952
+      },
+      "engine": "stream",
+      "first_ms": 0.369008,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3780,
+        "VmRSS": 3780
+      },
+      "open_ms": 0.102765,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 131.884021,
+      "first_ms": 0.680587,
+      "before_kib": {
+        "VmHWM": 16680,
+        "VmRSS": 16680
+      },
+      "open_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32092
+      },
+      "end_kib": {
+        "VmHWM": 32248,
+        "VmRSS": 32248
+      },
+      "size": 100000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3028,
+        "VmRSS": 3028
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14616,
+        "VmRSS": 14616
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.363633,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14464,
+        "VmRSS": 14464
+      },
+      "open_ms": 9.076369000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 6,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2908,
+        "VmRSS": 2908
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3616,
+        "VmRSS": 3616
+      },
+      "engine": "lazy",
+      "first_ms": 0.542094,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3404,
+        "VmRSS": 3404
+      },
+      "open_ms": 0.11411299999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3952,
+        "VmRSS": 3952
+      },
+      "engine": "stream",
+      "first_ms": 0.376869,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3780,
+        "VmRSS": 3780
+      },
+      "open_ms": 0.17946800000000002,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 128.177621,
+      "first_ms": 0.666222,
+      "before_kib": {
+        "VmHWM": 16676,
+        "VmRSS": 16676
+      },
+      "open_kib": {
+        "VmHWM": 32212,
+        "VmRSS": 32092
+      },
+      "end_kib": {
+        "VmHWM": 32248,
+        "VmRSS": 32248
+      },
+      "size": 100000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3032,
+        "VmRSS": 3032
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14620,
+        "VmRSS": 14620
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.33455399999999996,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14468,
+        "VmRSS": 14468
+      },
+      "open_ms": 9.511911,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3020,
+        "VmRSS": 3020
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 27628,
+        "VmRSS": 24580
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.269838,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 27628,
+        "VmRSS": 24516
+      },
+      "open_ms": 30.115952,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 7,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3092,
+        "VmRSS": 3092
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3808,
+        "VmRSS": 3808
+      },
+      "engine": "stream",
+      "first_ms": 0.340804,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3636,
+        "VmRSS": 3636
+      },
+      "open_ms": 0.11100499999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "open",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 131.572315,
+      "first_ms": 0.73039,
+      "before_kib": {
+        "VmHWM": 16644,
+        "VmRSS": 16644
+      },
+      "open_kib": {
+        "VmHWM": 32180,
+        "VmRSS": 32060
+      },
+      "end_kib": {
+        "VmHWM": 32216,
+        "VmRSS": 32216
+      },
+      "size": 100000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 14696,
+        "VmRSS": 14696
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.329429,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 14480,
+        "VmRSS": 14480
+      },
+      "open_ms": 9.575852,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2976,
+        "VmRSS": 2976
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 28384,
+        "VmRSS": 25468
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.263519,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 28384,
+        "VmRSS": 25404
+      },
+      "open_ms": 30.092097000000003,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2864,
+        "VmRSS": 2864
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3572,
+        "VmRSS": 3572
+      },
+      "engine": "lazy",
+      "first_ms": 0.560185,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 3360,
+        "VmRSS": 3360
+      },
+      "open_ms": 0.117176,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "size": 100000,
+      "trial": 8,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 51916,
+        "VmRSS": 51916
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.283485,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 27644,
+        "VmRSS": 24532
+      },
+      "open_ms": 29.624714,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 258.240652,
+        "p50_us": 252.134,
+        "p95_us": 294.909,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 232.032793,
+        "p50_us": 225.702,
+        "p95_us": 263.81,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3884,
+        "VmRSS": 3884
+      },
+      "engine": "lazy",
+      "first_ms": 0.61895,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3392,
+        "VmRSS": 3392
+      },
+      "open_ms": 0.12342700000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 502.108983,
+        "p50_us": 496.022,
+        "p95_us": 552.479,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 112.013286,
+        "p50_us": 106.827,
+        "p95_us": 132.686,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3032,
+        "VmRSS": 3032
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3760,
+        "VmRSS": 3760
+      },
+      "engine": "lazy",
+      "first_ms": 0.582488,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3332,
+        "VmRSS": 3332
+      },
+      "open_ms": 0.10783999999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 502.537804,
+        "p50_us": 495.939,
+        "p95_us": 553.327,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 108.867306,
+        "p50_us": 105.978,
+        "p95_us": 128.339,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3020,
+        "VmRSS": 3020
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 51964,
+        "VmRSS": 51964
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.29218799999999995,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 27628,
+        "VmRSS": 24580
+      },
+      "open_ms": 29.882237999999997,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 255.487397,
+        "p50_us": 250.002,
+        "p95_us": 284.664,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 230.02294,
+        "p50_us": 225.048,
+        "p95_us": 258.469,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 51984,
+        "VmRSS": 51984
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.28313900000000003,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 27712,
+        "VmRSS": 24664
+      },
+      "open_ms": 30.226728,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 258.938498,
+        "p50_us": 253.335,
+        "p95_us": 295.518,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 232.228209,
+        "p50_us": 226.342,
+        "p95_us": 262.719,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2856,
+        "VmRSS": 2856
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3844,
+        "VmRSS": 3844
+      },
+      "engine": "lazy",
+      "first_ms": 0.5516759999999999,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3352,
+        "VmRSS": 3352
+      },
+      "open_ms": 0.112791,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 505.182027,
+        "p50_us": 497.526,
+        "p95_us": 557.985,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 110.872193,
+        "p50_us": 106.633,
+        "p95_us": 132.183,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2912,
+        "VmRSS": 2912
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3900,
+        "VmRSS": 3900
+      },
+      "engine": "lazy",
+      "first_ms": 0.609225,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3408,
+        "VmRSS": 3408
+      },
+      "open_ms": 0.10483400000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 506.640215,
+        "p50_us": 500.606,
+        "p95_us": 557.675,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 112.904515,
+        "p50_us": 108.282,
+        "p95_us": 134.583,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 51924,
+        "VmRSS": 51924
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.277043,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 27572,
+        "VmRSS": 24604
+      },
+      "open_ms": 29.996608000000002,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 259.02734599999997,
+        "p50_us": 252.768,
+        "p95_us": 294.731,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 231.514261,
+        "p50_us": 226.737,
+        "p95_us": 257.186,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 3,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3032,
+        "VmRSS": 3032
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 52040,
+        "VmRSS": 52040
+      },
+      "engine": "woyo-index",
+      "first_ms": 0.29929799999999995,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 27832,
+        "VmRSS": 24720
+      },
+      "open_ms": 30.012103,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 262.792513,
+        "p50_us": 255.896,
+        "p95_us": 304.375,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 236.30785,
+        "p50_us": 230.045,
+        "p95_us": 272.536,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3900,
+        "VmRSS": 3900
+      },
+      "engine": "lazy",
+      "first_ms": 0.619896,
+      "mode": "lookup",
+      "open_kib": {
+        "VmHWM": 3408,
+        "VmRSS": 3408
+      },
+      "open_ms": 0.124943,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "random": {
+        "bytes": 511000,
+        "mean_us": 500.653841,
+        "p50_us": 494.886,
+        "p95_us": 550.944,
+        "queries": 1000
+      },
+      "repeat": {
+        "bytes": 511000,
+        "mean_us": 109.587365,
+        "p50_us": 106.205,
+        "p95_us": 131.021,
+        "queries": 1000
+      },
+      "size": 100000,
+      "trial": 4,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2904,
+        "VmRSS": 2904
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 43220,
+        "VmRSS": 43220
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.315151,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 14532,
+        "VmRSS": 14532
+      },
+      "open_ms": 9.902694,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 25688.867019,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3556,
+        "VmRSS": 3556
+      },
+      "engine": "lazy",
+      "first_ms": 0.5191720000000001,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3344,
+        "VmRSS": 3344
+      },
+      "open_ms": 0.112387,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 322.49016400000005,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3108,
+        "VmRSS": 3108
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3824,
+        "VmRSS": 3824
+      },
+      "engine": "stream",
+      "first_ms": 0.418798,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3652,
+        "VmRSS": 3652
+      },
+      "open_ms": 0.120776,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 214.04752699999997,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "scan",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 131.97838,
+      "first_ms": 0.719352,
+      "before_kib": {
+        "VmHWM": 16568,
+        "VmRSS": 16568
+      },
+      "open_kib": {
+        "VmHWM": 32100,
+        "VmRSS": 31980
+      },
+      "scan_ms": 328.767908,
+      "scanned": 100000,
+      "bytes": 51100000,
+      "end_kib": {
+        "VmHWM": 32272,
+        "VmRSS": 32272
+      },
+      "size": 100000,
+      "trial": 0,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3772,
+        "VmRSS": 3744
+      },
+      "engine": "lazy",
+      "first_ms": 0.49657300000000004,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3468,
+        "VmRSS": 3468
+      },
+      "open_ms": 0.106173,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 323.083493,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3804,
+        "VmRSS": 3804
+      },
+      "engine": "stream",
+      "first_ms": 0.38632,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3632,
+        "VmRSS": 3632
+      },
+      "open_ms": 0.115041,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 214.4865,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "scan",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 133.081825,
+      "first_ms": 0.802444,
+      "before_kib": {
+        "VmHWM": 16676,
+        "VmRSS": 16676
+      },
+      "open_kib": {
+        "VmHWM": 32208,
+        "VmRSS": 32088
+      },
+      "scan_ms": 327.571276,
+      "scanned": 100000,
+      "bytes": 51100000,
+      "end_kib": {
+        "VmHWM": 32380,
+        "VmRSS": 32380
+      },
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 43296,
+        "VmRSS": 43296
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.348162,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 14544,
+        "VmRSS": 14544
+      },
+      "open_ms": 9.546116,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 25664.453321,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 1,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3824,
+        "VmRSS": 3824
+      },
+      "engine": "stream",
+      "first_ms": 0.38992299999999996,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3652,
+        "VmRSS": 3652
+      },
+      "open_ms": 0.121384,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 212.755384,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "engine": "python",
+      "mode": "scan",
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "count": 100000,
+      "open_ms": 130.921381,
+      "first_ms": 0.639249,
+      "before_kib": {
+        "VmHWM": 16660,
+        "VmRSS": 16660
+      },
+      "open_kib": {
+        "VmHWM": 32196,
+        "VmRSS": 32076
+      },
+      "scan_ms": 326.933102,
+      "scanned": 100000,
+      "bytes": 51100000,
+      "end_kib": {
+        "VmHWM": 32368,
+        "VmRSS": 32368
+      },
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2896,
+        "VmRSS": 2896
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 43216,
+        "VmRSS": 43216
+      },
+      "engine": "woyo-reader",
+      "first_ms": 0.334436,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 14528,
+        "VmRSS": 14528
+      },
+      "open_ms": 9.272765,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 25583.891117,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2960,
+        "VmRSS": 2960
+      },
+      "bytes": 51100000,
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 3600,
+        "VmRSS": 3600
+      },
+      "engine": "lazy",
+      "first_ms": 0.477661,
+      "mode": "scan",
+      "open_kib": {
+        "VmHWM": 3388,
+        "VmRSS": 3388
+      },
+      "open_ms": 0.114891,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "scan_ms": 322.329536,
+      "scanned": 100000,
+      "size": 100000,
+      "trial": 2,
+      "exit": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2972,
+        "VmRSS": 2972
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5768,
+        "VmRSS": 5768
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.6211380000000001,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5608,
+        "VmRSS": 5608
+      },
+      "open_ms": 3.0599600000000002,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5840,
+        "VmRSS": 5840
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.45319000000000004,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5616,
+        "VmRSS": 5616
+      },
+      "open_ms": 2.648373,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 1
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2964,
+        "VmRSS": 2964
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5760,
+        "VmRSS": 5760
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.33520700000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5600,
+        "VmRSS": 5600
+      },
+      "open_ms": 1.966944,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 2
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5708,
+        "VmRSS": 5708
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.283223,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5484,
+        "VmRSS": 5484
+      },
+      "open_ms": 1.5739400000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 3
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3024,
+        "VmRSS": 3024
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5692,
+        "VmRSS": 5692
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.278112,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5468,
+        "VmRSS": 5468
+      },
+      "open_ms": 1.378877,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 4
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5900,
+        "VmRSS": 5900
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.294696,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5740,
+        "VmRSS": 5740
+      },
+      "open_ms": 1.443649,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 5
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2968,
+        "VmRSS": 2968
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5700,
+        "VmRSS": 5700
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.318115,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5540,
+        "VmRSS": 5540
+      },
+      "open_ms": 1.3963160000000001,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 6
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5832,
+        "VmRSS": 5832
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.328554,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5608,
+        "VmRSS": 5608
+      },
+      "open_ms": 1.483056,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 7
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2972,
+        "VmRSS": 2972
+      },
+      "count": 10000,
+      "end_kib": {
+        "VmHWM": 5772,
+        "VmRSS": 5772
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.293996,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 5612,
+        "VmRSS": 5612
+      },
+      "open_ms": 1.584541,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-10000.mdx",
+      "exit": 0,
+      "size": 10000,
+      "trial": 8
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3020,
+        "VmRSS": 3020
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20716,
+        "VmRSS": 20240
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.331684,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20716,
+        "VmRSS": 19936
+      },
+      "open_ms": 13.999094,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 0
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2980,
+        "VmRSS": 2980
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20740,
+        "VmRSS": 20200
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.321355,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20740,
+        "VmRSS": 19960
+      },
+      "open_ms": 13.434471,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 1
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20608,
+        "VmRSS": 20132
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.353973,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20608,
+        "VmRSS": 19828
+      },
+      "open_ms": 13.468397999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 2
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3040,
+        "VmRSS": 3040
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20736,
+        "VmRSS": 20260
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.31741,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20736,
+        "VmRSS": 19956
+      },
+      "open_ms": 13.636314,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 3
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2976,
+        "VmRSS": 2976
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20672,
+        "VmRSS": 20196
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.32721900000000004,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20672,
+        "VmRSS": 19956
+      },
+      "open_ms": 13.821976999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 4
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3036,
+        "VmRSS": 3036
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20732,
+        "VmRSS": 20256
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.319569,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20732,
+        "VmRSS": 19952
+      },
+      "open_ms": 13.878527,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 5
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20740,
+        "VmRSS": 20264
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.320026,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20740,
+        "VmRSS": 19960
+      },
+      "open_ms": 14.191851,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 6
+    },
+    {
+      "before_kib": {
+        "VmHWM": 3044,
+        "VmRSS": 3044
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20740,
+        "VmRSS": 20264
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.322475,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20740,
+        "VmRSS": 19960
+      },
+      "open_ms": 13.951108999999999,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 7
+    },
+    {
+      "before_kib": {
+        "VmHWM": 2976,
+        "VmRSS": 2976
+      },
+      "count": 100000,
+      "end_kib": {
+        "VmHWM": 20800,
+        "VmRSS": 20324
+      },
+      "engine": "woyo-cached",
+      "first_ms": 0.32358000000000003,
+      "mode": "open",
+      "open_kib": {
+        "VmHWM": 20800,
+        "VmRSS": 20084
+      },
+      "open_ms": 13.686172,
+      "path": "/tmp/woyodict-compare.5ow0oh/corpus/bench-100000.mdx",
+      "exit": 0,
+      "size": 100000,
+      "trial": 8
+    }
+  ],
+  "correctness": {
+    "normalization": "MDX comparison normalizes CRLF and strips trailing NUL/newline/space/tab; key spelling and duplicate multiplicity preserved. MDD comparison checks filenames, lengths, and byte sums.",
+    "public_fixtures": [
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 365965,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 4740,
+          "VmRSS": 4672
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.010839000000000001,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3844,
+          "VmRSS": 3844
+        },
+        "open_ms": 0.194186,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdx",
+        "scan_ms": 1.040643,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 366061,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 4800,
+          "VmRSS": 4240
+        },
+        "engine": "lazy",
+        "first_ms": 0.024323,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3392,
+          "VmRSS": 3392
+        },
+        "open_ms": 0.036866,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdx",
+        "scan_ms": 1.845284,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2960,
+          "VmRSS": 2960
+        },
+        "bytes": 366059,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 4792,
+          "VmRSS": 4112
+        },
+        "engine": "stream",
+        "first_ms": 0.023097,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3624,
+          "VmRSS": 3624
+        },
+        "open_ms": 0.093198,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdx",
+        "scan_ms": 0.588431,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdx",
+        "count": 47,
+        "open_ms": 0.265388,
+        "first_ms": 0.096135,
+        "before_kib": {
+          "VmHWM": 16508,
+          "VmRSS": 16508
+        },
+        "open_kib": {
+          "VmHWM": 16720,
+          "VmRSS": 16720
+        },
+        "scan_ms": 1.09567,
+        "scanned": 47,
+        "bytes": 366061,
+        "end_kib": {
+          "VmHWM": 17764,
+          "VmRSS": 17504
+        },
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3096,
+          "VmRSS": 3096
+        },
+        "bytes": 365965,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 5384,
+          "VmRSS": 4720
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.01086,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3908,
+          "VmRSS": 3908
+        },
+        "open_ms": 0.171206,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdx",
+        "scan_ms": 1.33525,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 366061,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 5952,
+          "VmRSS": 4484
+        },
+        "engine": "lazy",
+        "first_ms": 0.031173000000000003,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3324,
+          "VmRSS": 3324
+        },
+        "open_ms": 0.035936,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdx",
+        "scan_ms": 3.7869829999999998,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 366059,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 5060,
+          "VmRSS": 4416
+        },
+        "engine": "stream",
+        "first_ms": 0.026282,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3636,
+          "VmRSS": 3636
+        },
+        "open_ms": 0.097457,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdx",
+        "scan_ms": 1.0763369999999999,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdx",
+        "count": 47,
+        "open_ms": 0.298755,
+        "first_ms": 0.107838,
+        "before_kib": {
+          "VmHWM": 16492,
+          "VmRSS": 16492
+        },
+        "open_kib": {
+          "VmHWM": 16704,
+          "VmRSS": 16704
+        },
+        "scan_ms": 1.726814,
+        "scanned": 47,
+        "bytes": 366061,
+        "end_kib": {
+          "VmHWM": 18232,
+          "VmRSS": 17488
+        },
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3028,
+          "VmRSS": 3028
+        },
+        "bytes": 365776,
+        "count": 25,
+        "end_kib": {
+          "VmHWM": 4796,
+          "VmRSS": 4680
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.0062,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3900,
+          "VmRSS": 3900
+        },
+        "open_ms": 0.18284599999999998,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdx",
+        "scan_ms": 0.813454,
+        "scanned": 25,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2908,
+          "VmRSS": 2908
+        },
+        "bytes": 365828,
+        "count": 25,
+        "end_kib": {
+          "VmHWM": 4992,
+          "VmRSS": 4332
+        },
+        "engine": "lazy",
+        "first_ms": 0.021044,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3456,
+          "VmRSS": 3456
+        },
+        "open_ms": 0.049977,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdx",
+        "scan_ms": 1.827707,
+        "scanned": 25,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2896,
+          "VmRSS": 2896
+        },
+        "bytes": 365826,
+        "count": 25,
+        "end_kib": {
+          "VmHWM": 4788,
+          "VmRSS": 4140
+        },
+        "engine": "stream",
+        "first_ms": 0.020603,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3688,
+          "VmRSS": 3688
+        },
+        "open_ms": 0.10592299999999999,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdx",
+        "scan_ms": 0.622524,
+        "scanned": 25,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdx",
+        "count": 25,
+        "open_ms": 0.633193,
+        "first_ms": 0.106117,
+        "before_kib": {
+          "VmHWM": 16512,
+          "VmRSS": 16512
+        },
+        "open_kib": {
+          "VmHWM": 16932,
+          "VmRSS": 16932
+        },
+        "scan_ms": 1.524395,
+        "scanned": 25,
+        "bytes": 365828,
+        "end_kib": {
+          "VmHWM": 17988,
+          "VmRSS": 17720
+        },
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "error": "invalid header: no XML attributes found in header",
+        "exit": 1,
+        "engine": "woyo-reader",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdx"
+      },
+      {
+        "error": "failed to decode header xml using utf-16le",
+        "exit": 1,
+        "engine": "lazy",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdx"
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2976,
+          "VmRSS": 2976
+        },
+        "bytes": 366059,
+        "count": 47,
+        "end_kib": {
+          "VmHWM": 4804,
+          "VmRSS": 4128
+        },
+        "engine": "stream",
+        "first_ms": 0.021199000000000003,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3700,
+          "VmRSS": 3700
+        },
+        "open_ms": 0.08765800000000001,
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdx",
+        "scan_ms": 0.594524,
+        "scanned": 47,
+        "exit": 0,
+        "matches_source": true,
+        "missing_count": 0,
+        "extra_count": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdx",
+        "count": 47,
+        "open_ms": 0.178416,
+        "first_ms": 0.147095,
+        "before_kib": {
+          "VmHWM": 16924,
+          "VmRSS": 16924
+        },
+        "open_kib": {
+          "VmHWM": 17052,
+          "VmRSS": 17052
+        },
+        "scan_ms": 1.184579,
+        "scanned": 47,
+        "bytes": 366061,
+        "end_kib": {
+          "VmHWM": 17924,
+          "VmRSS": 17836
+        },
+        "exit": 0,
+        "matches_source": true
+      }
+    ],
+    "public_resources": [
+      {
+        "engine": "woyo-reader",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "lazy",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "stream",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "python",
+        "mode": "resources",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-2.0.mdd",
+        "count": 5,
+        "open_ms": 0.218115,
+        "first_ms": 0.09711,
+        "before_kib": {
+          "VmHWM": 16664,
+          "VmRSS": 16664
+        },
+        "open_kib": {
+          "VmHWM": 16872,
+          "VmRSS": 16872
+        },
+        "scan_ms": 0.714365,
+        "scanned": 5,
+        "bytes": 171109,
+        "resources": [
+          {
+            "key": "\\beep.wav",
+            "bytes": 204,
+            "sum": 15828
+          },
+          {
+            "key": "\\Dot.PNG",
+            "bytes": 70,
+            "sum": 4428
+          },
+          {
+            "key": "\\file.txt",
+            "bytes": 19,
+            "sum": 1766
+          },
+          {
+            "key": "\\huge.bin",
+            "bytes": 136000,
+            "sum": 7520000
+          },
+          {
+            "key": "\\large.bin",
+            "bytes": 34816,
+            "sum": 1925120
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 17112,
+          "VmRSS": 17044
+        },
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "woyo-reader",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "lazy",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "stream",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "python",
+        "mode": "resources",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf16-2.0.mdd",
+        "count": 5,
+        "open_ms": 0.229185,
+        "first_ms": 0.127142,
+        "before_kib": {
+          "VmHWM": 16616,
+          "VmRSS": 16616
+        },
+        "open_kib": {
+          "VmHWM": 16824,
+          "VmRSS": 16824
+        },
+        "scan_ms": 0.767091,
+        "scanned": 5,
+        "bytes": 171109,
+        "resources": [
+          {
+            "key": "\\beep.wav",
+            "bytes": 204,
+            "sum": 15828
+          },
+          {
+            "key": "\\Dot.PNG",
+            "bytes": 70,
+            "sum": 4428
+          },
+          {
+            "key": "\\file.txt",
+            "bytes": 19,
+            "sum": 1766
+          },
+          {
+            "key": "\\huge.bin",
+            "bytes": 136000,
+            "sum": 7520000
+          },
+          {
+            "key": "\\large.bin",
+            "bytes": 34816,
+            "sum": 1925120
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 17072,
+          "VmRSS": 16996
+        },
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "woyo-reader",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "lazy",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "stream",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "\\beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "\\Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "\\file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "\\huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "\\large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "python",
+        "mode": "resources",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/gbk-2.0.mdd",
+        "count": 5,
+        "open_ms": 0.208012,
+        "first_ms": 0.094112,
+        "before_kib": {
+          "VmHWM": 16664,
+          "VmRSS": 16664
+        },
+        "open_kib": {
+          "VmHWM": 16872,
+          "VmRSS": 16872
+        },
+        "scan_ms": 0.790442,
+        "scanned": 5,
+        "bytes": 171109,
+        "resources": [
+          {
+            "key": "\\beep.wav",
+            "bytes": 204,
+            "sum": 15828
+          },
+          {
+            "key": "\\Dot.PNG",
+            "bytes": 70,
+            "sum": 4428
+          },
+          {
+            "key": "\\file.txt",
+            "bytes": 19,
+            "sum": 1766
+          },
+          {
+            "key": "\\huge.bin",
+            "bytes": 136000,
+            "sum": 7520000
+          },
+          {
+            "key": "\\large.bin",
+            "bytes": 34816,
+            "sum": 1925120
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 17112,
+          "VmRSS": 17044
+        },
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "arguments": [
+          "/tmp/woyodict-compare.5ow0oh/harness/target/release/mdict-comparison",
+          "woyo-reader",
+          "resources",
+          "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdd"
+        ],
+        "error": "invalid header: no XML attributes found in header",
+        "exit": 1,
+        "engine": "woyo-reader",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdd"
+      },
+      {
+        "arguments": [
+          "/tmp/woyodict-compare.5ow0oh/harness/target/release/mdict-comparison",
+          "lazy",
+          "resources",
+          "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdd"
+        ],
+        "error": "invalid format: header xml must start with '<'",
+        "exit": 1,
+        "engine": "lazy",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdd"
+      },
+      {
+        "engine": "stream",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdd",
+        "resources": [
+          {
+            "bytes": 204,
+            "key": "/beep.wav",
+            "sum": 15828
+          },
+          {
+            "bytes": 70,
+            "key": "/Dot.PNG",
+            "sum": 4428
+          },
+          {
+            "bytes": 19,
+            "key": "/file.txt",
+            "sum": 1766
+          },
+          {
+            "bytes": 136000,
+            "key": "/huge.bin",
+            "sum": 7520000
+          },
+          {
+            "bytes": 34816,
+            "key": "/large.bin",
+            "sum": 1925120
+          }
+        ],
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      },
+      {
+        "engine": "python",
+        "mode": "resources",
+        "path": "/tmp/woyodict-compare.5ow0oh/mdict-reader/tests/utf8-3.0.mdd",
+        "count": 5,
+        "open_ms": 0.141821,
+        "first_ms": 0.144725,
+        "before_kib": {
+          "VmHWM": 16660,
+          "VmRSS": 16660
+        },
+        "open_kib": {
+          "VmHWM": 16808,
+          "VmRSS": 16808
+        },
+        "scan_ms": 0.766433,
+        "scanned": 5,
+        "bytes": 171109,
+        "resources": [
+          {
+            "key": "/beep.wav",
+            "bytes": 204,
+            "sum": 15828
+          },
+          {
+            "key": "/Dot.PNG",
+            "bytes": 70,
+            "sum": 4428
+          },
+          {
+            "key": "/file.txt",
+            "bytes": 19,
+            "sum": 1766
+          },
+          {
+            "key": "/huge.bin",
+            "bytes": 136000,
+            "sum": 7520000
+          },
+          {
+            "key": "/large.bin",
+            "bytes": 34816,
+            "sum": 1925120
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 16984,
+          "VmRSS": 16980
+        },
+        "exit": 0,
+        "matches_source_lengths_and_sums": true
+      }
+    ],
+    "crossblock": [
+      {
+        "before_kib": {
+          "VmHWM": 2992,
+          "VmRSS": 2992
+        },
+        "bytes": 82,
+        "count": 2,
+        "end_kib": {
+          "VmHWM": 3900,
+          "VmRSS": 3900
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.015829,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3900,
+          "VmRSS": 3900
+        },
+        "open_ms": 0.188723,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/crossblock.mdx",
+        "records": [
+          {
+            "key": "alpha",
+            "text": "<p>long enough to cross several record blocks</p>"
+          },
+          {
+            "key": "beta",
+            "text": "<p>second entry across blocks</p>"
+          }
+        ],
+        "scan_ms": 0.034967,
+        "scanned": 2,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2976,
+          "VmRSS": 2976
+        },
+        "bytes": 82,
+        "count": 2,
+        "end_kib": {
+          "VmHWM": 3332,
+          "VmRSS": 3332
+        },
+        "engine": "lazy",
+        "first_ms": 0.01426,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3328,
+          "VmRSS": 3328
+        },
+        "open_ms": 0.031037000000000002,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/crossblock.mdx",
+        "records": [
+          {
+            "key": "alpha",
+            "text": "<p>long enough to cross several record blocks</p>"
+          },
+          {
+            "key": "beta",
+            "text": "<p>second entry across blocks</p>"
+          }
+        ],
+        "scan_ms": 0.015586999999999998,
+        "scanned": 2,
+        "exit": 0
+      },
+      {
+        "error": "Invalid format: Record location [0..50] is out of bounds for block of size 11",
+        "exit": 1,
+        "engine": "stream",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/crossblock.mdx"
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/crossblock.mdx",
+        "count": 2,
+        "open_ms": 0.265887,
+        "first_ms": 0.085293,
+        "before_kib": {
+          "VmHWM": 16508,
+          "VmRSS": 16508
+        },
+        "open_kib": {
+          "VmHWM": 16708,
+          "VmRSS": 16708
+        },
+        "scan_ms": 0.474543,
+        "scanned": 2,
+        "bytes": 16,
+        "records": [
+          {
+            "key": "alpha",
+            "text": "<p>long eno"
+          },
+          {
+            "key": "beta",
+            "text": "<p>se"
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 16776,
+          "VmRSS": 16776
+        },
+        "exit": 0
+      }
+    ],
+    "isolated_cases": [
+      {
+        "before_kib": {
+          "VmHWM": 2976,
+          "VmRSS": 2976
+        },
+        "bytes": 12,
+        "count": 1,
+        "end_kib": {
+          "VmHWM": 4012,
+          "VmRSS": 4012
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.013667,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 4012,
+          "VmRSS": 4012
+        },
+        "open_ms": 0.455575,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/big5.mdx",
+        "records": [
+          {
+            "key": "word",
+            "text": "����"
+          }
+        ],
+        "scan_ms": 0.013245999999999999,
+        "scanned": 1,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2924,
+          "VmRSS": 2924
+        },
+        "bytes": 6,
+        "count": 1,
+        "end_kib": {
+          "VmHWM": 3472,
+          "VmRSS": 3472
+        },
+        "engine": "lazy",
+        "first_ms": 0.041324,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3340,
+          "VmRSS": 3340
+        },
+        "open_ms": 0.101217,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/big5.mdx",
+        "records": [
+          {
+            "key": "word",
+            "text": "測試"
+          }
+        ],
+        "scan_ms": 0.0039840000000000006,
+        "scanned": 1,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2964,
+          "VmRSS": 2964
+        },
+        "bytes": 6,
+        "count": 1,
+        "end_kib": {
+          "VmHWM": 3760,
+          "VmRSS": 3760
+        },
+        "engine": "stream",
+        "first_ms": 0.06082,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3624,
+          "VmRSS": 3624
+        },
+        "open_ms": 0.380446,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/big5.mdx",
+        "records": [
+          {
+            "key": "word",
+            "text": "測試"
+          }
+        ],
+        "scan_ms": 0.03681,
+        "scanned": 1,
+        "exit": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/big5.mdx",
+        "count": 1,
+        "open_ms": 0.575645,
+        "first_ms": 0.118175,
+        "before_kib": {
+          "VmHWM": 16552,
+          "VmRSS": 16552
+        },
+        "open_kib": {
+          "VmHWM": 16924,
+          "VmRSS": 16924
+        },
+        "scan_ms": 0.097405,
+        "scanned": 1,
+        "bytes": 6,
+        "records": [
+          {
+            "key": "word",
+            "text": "測試"
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 17012,
+          "VmRSS": 17012
+        },
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 2,
+        "count": 2,
+        "end_kib": {
+          "VmHWM": 3908,
+          "VmRSS": 3908
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.004264,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3904,
+          "VmRSS": 3904
+        },
+        "open_ms": 0.152919,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/v1.mdx",
+        "records": [
+          {
+            "key": "a",
+            "text": "A"
+          },
+          {
+            "key": "b",
+            "text": "B"
+          }
+        ],
+        "scan_ms": 0.009367,
+        "scanned": 2,
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "/tmp/woyodict-compare.5ow0oh/harness/target/release/mdict-comparison",
+          "lazy",
+          "probe",
+          "/tmp/woyodict-compare.5ow0oh/corpus/v1.mdx"
+        ],
+        "error": "unsupported feature: MDict version 1.x",
+        "exit": 1,
+        "engine": "lazy",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/v1.mdx"
+      },
+      {
+        "before_kib": {
+          "VmHWM": 2900,
+          "VmRSS": 2900
+        },
+        "bytes": 2,
+        "count": 2,
+        "end_kib": {
+          "VmHWM": 3756,
+          "VmRSS": 3756
+        },
+        "engine": "stream",
+        "first_ms": 0.056666,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3496,
+          "VmRSS": 3496
+        },
+        "open_ms": 0.034097,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/v1.mdx",
+        "records": [
+          {
+            "key": "a",
+            "text": "A"
+          },
+          {
+            "key": "b",
+            "text": "B"
+          }
+        ],
+        "scan_ms": 0.012405999999999999,
+        "scanned": 2,
+        "exit": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/v1.mdx",
+        "count": 2,
+        "open_ms": 0.268067,
+        "first_ms": 0.087367,
+        "before_kib": {
+          "VmHWM": 16544,
+          "VmRSS": 16544
+        },
+        "open_kib": {
+          "VmHWM": 16740,
+          "VmRSS": 16740
+        },
+        "scan_ms": 0.077831,
+        "scanned": 2,
+        "bytes": 2,
+        "records": [
+          {
+            "key": "a",
+            "text": "A"
+          },
+          {
+            "key": "b",
+            "text": "B"
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 16808,
+          "VmRSS": 16808
+        },
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3024,
+          "VmRSS": 3024
+        },
+        "bytes": 3,
+        "count": 3,
+        "end_kib": {
+          "VmHWM": 3932,
+          "VmRSS": 3932
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.004561,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3932,
+          "VmRSS": 3932
+        },
+        "open_ms": 0.19545099999999999,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/duplicate-offset.mdx",
+        "records": [
+          {
+            "key": "alpha",
+            "text": "A"
+          },
+          {
+            "key": "alpha",
+            "text": "A"
+          },
+          {
+            "key": "beta",
+            "text": "B"
+          }
+        ],
+        "scan_ms": 0.013013,
+        "scanned": 3,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 2,
+        "count": 3,
+        "end_kib": {
+          "VmHWM": 3396,
+          "VmRSS": 3396
+        },
+        "engine": "lazy",
+        "first_ms": 0.008479,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3324,
+          "VmRSS": 3324
+        },
+        "open_ms": 0.030104,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/duplicate-offset.mdx",
+        "records": [
+          {
+            "key": "alpha",
+            "text": ""
+          },
+          {
+            "key": "alpha",
+            "text": "A"
+          },
+          {
+            "key": "beta",
+            "text": "B"
+          }
+        ],
+        "scan_ms": 0.010375,
+        "scanned": 3,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3088,
+          "VmRSS": 3088
+        },
+        "bytes": 2,
+        "count": 3,
+        "end_kib": {
+          "VmHWM": 3688,
+          "VmRSS": 3688
+        },
+        "engine": "stream",
+        "first_ms": 0.016059999999999998,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3620,
+          "VmRSS": 3620
+        },
+        "open_ms": 0.09742300000000001,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/duplicate-offset.mdx",
+        "records": [
+          {
+            "key": "alpha",
+            "text": ""
+          },
+          {
+            "key": "alpha",
+            "text": "A"
+          },
+          {
+            "key": "beta",
+            "text": "B"
+          }
+        ],
+        "scan_ms": 0.016106000000000002,
+        "scanned": 3,
+        "exit": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/duplicate-offset.mdx",
+        "count": 3,
+        "open_ms": 0.386133,
+        "first_ms": 0.108184,
+        "before_kib": {
+          "VmHWM": 16488,
+          "VmRSS": 16488
+        },
+        "open_kib": {
+          "VmHWM": 16688,
+          "VmRSS": 16688
+        },
+        "scan_ms": 0.093506,
+        "scanned": 3,
+        "bytes": 2,
+        "records": [
+          {
+            "key": "alpha",
+            "text": ""
+          },
+          {
+            "key": "alpha",
+            "text": "A"
+          },
+          {
+            "key": "beta",
+            "text": "B"
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 16756,
+          "VmRSS": 16756
+        },
+        "exit": 0
+      }
+    ],
+    "encrypted_key_info": [
+      {
+        "before_kib": {
+          "VmHWM": 3044,
+          "VmRSS": 3044
+        },
+        "bytes": 5,
+        "count": 1,
+        "end_kib": {
+          "VmHWM": 4144,
+          "VmRSS": 4144
+        },
+        "engine": "woyo-reader",
+        "first_ms": 0.005465,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 4144,
+          "VmRSS": 4144
+        },
+        "open_ms": 0.194855,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/encrypted-info.mdx",
+        "records": [
+          {
+            "key": "key",
+            "text": "VALUE"
+          }
+        ],
+        "scan_ms": 0.005729,
+        "scanned": 1,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3036,
+          "VmRSS": 3036
+        },
+        "bytes": 5,
+        "count": 1,
+        "end_kib": {
+          "VmHWM": 3456,
+          "VmRSS": 3456
+        },
+        "engine": "lazy",
+        "first_ms": 0.007857,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3388,
+          "VmRSS": 3388
+        },
+        "open_ms": 0.030219,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/encrypted-info.mdx",
+        "records": [
+          {
+            "key": "key",
+            "text": "VALUE"
+          }
+        ],
+        "scan_ms": 0.00095,
+        "scanned": 1,
+        "exit": 0
+      },
+      {
+        "before_kib": {
+          "VmHWM": 3020,
+          "VmRSS": 3020
+        },
+        "bytes": 5,
+        "count": 1,
+        "end_kib": {
+          "VmHWM": 3684,
+          "VmRSS": 3684
+        },
+        "engine": "stream",
+        "first_ms": 0.010084999999999998,
+        "mode": "probe",
+        "open_kib": {
+          "VmHWM": 3680,
+          "VmRSS": 3680
+        },
+        "open_ms": 0.075764,
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/encrypted-info.mdx",
+        "records": [
+          {
+            "key": "key",
+            "text": "VALUE"
+          }
+        ],
+        "scan_ms": 0.008733,
+        "scanned": 1,
+        "exit": 0
+      },
+      {
+        "engine": "python",
+        "mode": "probe",
+        "path": "/tmp/woyodict-compare.5ow0oh/corpus/encrypted-info.mdx",
+        "count": 1,
+        "open_ms": 0.278772,
+        "first_ms": 0.083525,
+        "before_kib": {
+          "VmHWM": 16664,
+          "VmRSS": 16664
+        },
+        "open_kib": {
+          "VmHWM": 16872,
+          "VmRSS": 16872
+        },
+        "scan_ms": 0.070821,
+        "scanned": 1,
+        "bytes": 5,
+        "records": [
+          {
+            "key": "key",
+            "text": "VALUE"
+          }
+        ],
+        "end_kib": {
+          "VmHWM": 16936,
+          "VmRSS": 16936
+        },
+        "exit": 0
+      }
+    ],
+    "caution": "Equal record offsets may denote aliases or intentionally empty records; the observed difference is not alone a proof that one implementation matches every real dictionary."
+  },
+  "reproduction": {
+    "work_directory": "/tmp/woyodict-compare.5ow0oh",
+    "native_manifest": "/tmp/woyodict-compare.5ow0oh/harness/Cargo.toml",
+    "native_source": "/tmp/woyodict-compare.5ow0oh/harness/src/main.rs",
+    "python_adapter": "/tmp/woyodict-compare.5ow0oh/python-bench.py",
+    "measurement_driver": "/tmp/woyodict-compare.5ow0oh/measure.py",
+    "build_command": "cargo build --release --manifest-path /tmp/woyodict-compare.5ow0oh/harness/Cargo.toml",
+    "measure_command": "python /tmp/woyodict-compare.5ow0oh/measure.py",
+    "note": "Comparison dependencies and fixtures stay outside the production workspace. Cached-open measurements were collected separately with the same child command and limits.",
+    "native_manifest_content": "[package]\nname = \"mdict-comparison\"\nversion = \"0.0.0\"\nedition = \"2024\"\npublish = false\n\n[workspace]\n\n[dependencies]\nwoyo = { package = \"mdict\", path = \"/home/rigel/Documents/FrontEnd/woyodict/crates/mdict\" }\nlazy = { package = \"mdict-rs\", path = \"../mdict-rs\", features = [\"lzo\"] }\nstream = { package = \"mdict-reader\", path = \"../mdict-reader\" }\nserde_json = \"1\"\nmemmap2 = \"0.9\"\nflate2 = \"1\"\nadler = \"1\"\n\n[profile.release]\nopt-level = 3\ncodegen-units = 1\nlto = \"thin\"\n",
+    "native_source_content": "use std::path::Path;\nuse std::time::Instant;\nuse serde_json::{json, Value};\nuse woyo::{Lookup, Read};\n\ntype Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;\n\nenum Engine {\n    Reader(woyo::Reader<memmap2::Mmap>),\n    Index(woyo::Mdx),\n    Lazy(lazy::MdxFile),\n    Stream(stream::MdictReader<stream::Mdx>),\n}\n\n#[derive(Default)]\nstruct Sink {\n    count: u64,\n    bytes: u64,\n}\n\nimpl Sink {\n    fn accept(&mut self, text: &str) {\n        self.count += 1;\n        self.bytes += std::hint::black_box(text.as_bytes()).len() as u64;\n    }\n}\n\nimpl Engine {\n    fn open(kind: &str, path: &Path) -> Result<Self> {\n        match kind {\n            \"woyo-reader\" => {\n                // Evaluation fixtures remain immutable for the child lifetime.\n                let reader = unsafe { woyo::Reader::open(path)? };\n                Ok(Self::Reader(reader))\n            }\n            \"woyo-index\" => {\n                let reader = unsafe { woyo::Reader::open(path)? };\n                let index = woyo::Index::build(&reader.entries)?;\n                Ok(Self::Index(woyo::Mdx { reader, index, resources: woyo::Resources::default() }))\n            }\n            \"woyo-cached\" => {\n                let reader = unsafe { woyo::Reader::open(path)? };\n                let cache = woyo::index::Cache::at(path,reader.entries.len(),\"bench.idx\");\n                let index = match cache.load() {\n                    Some(index) => index,\n                    None => {\n                        let index = woyo::Index::build(&reader.entries)?;\n                        cache.save(&index)?;\n                        index\n                    }\n                };\n                Ok(Self::Index(woyo::Mdx { reader, index, resources: woyo::Resources::default() }))\n            }\n            \"lazy\" => Ok(Self::Lazy(lazy::MdxFile::open(path)?)),\n            \"stream\" => Ok(Self::Stream(stream::MdictReader::<stream::Mdx>::new(path, None, None, false)?)),\n            _ => Err(format!(\"unknown engine {kind}\").into()),\n        }\n    }\n\n    fn count(&self) -> u64 {\n        match self {\n            Self::Reader(reader) => reader.entries.len() as u64,\n            Self::Index(dictionary) => dictionary.reader.entries.len() as u64,\n            Self::Lazy(dictionary) => dictionary.len(),\n            Self::Stream(reader) => reader.num_entries(),\n        }\n    }\n\n    fn first(&self) -> Result<String> {\n        match self {\n            Self::Reader(reader) => Ok(reader.record(0)?.text(&reader.info.encoding)?),\n            Self::Index(dictionary) => Ok(dictionary.reader.record(0)?.text(&dictionary.reader.info.encoding)?),\n            Self::Lazy(dictionary) => Ok(dictionary.entries().next().ok_or(\"empty\")??.text),\n            Self::Stream(reader) => {\n                let (_, value) = reader.iter_records().next().ok_or(\"empty\")??;\n                match value {\n                    stream::RecordData::Content(text) => Ok(text),\n                    stream::RecordData::Redirect(target) => Ok(format!(\"@@@LINK={target}\")),\n                }\n            }\n        }\n    }\n\n    fn scan(&self, capture: bool) -> Result<(Sink, Vec<Value>)> {\n        let mut sink = Sink::default();\n        let mut sample = Vec::new();\n        let mut consume = |key: &str, text: &str| {\n            sink.accept(text);\n            if capture {\n                sample.push(json!({\"key\":key,\"text\":text}));\n            }\n        };\n        match self {\n            Self::Reader(reader) => {\n                for (id, entry) in reader.entries.iter().enumerate() {\n                    let text = reader.record(id)?.text(&reader.info.encoding)?;\n                    consume(&entry.headword, &text);\n                }\n            }\n            Self::Index(dictionary) => {\n                for (id, entry) in dictionary.reader.entries.iter().enumerate() {\n                    let text = dictionary.reader.record(id)?.text(&dictionary.reader.info.encoding)?;\n                    consume(&entry.headword, &text);\n                }\n            }\n            Self::Lazy(dictionary) => {\n                for entry in dictionary.entries() {\n                    let entry = entry?;\n                    consume(&entry.key, &entry.text);\n                }\n            }\n            Self::Stream(reader) => {\n                for entry in reader.iter_records() {\n                    let (key, entry) = entry?;\n                    match entry {\n                        stream::RecordData::Content(text) => consume(&key, &text),\n                        stream::RecordData::Redirect(target) => consume(&key, &format!(\"@@@LINK={target}\")),\n                    }\n                }\n            }\n        }\n        Ok((sink, sample))\n    }\n\n    fn lookup(&self, query: &str) -> Result<String> {\n        match self {\n            Self::Index(dictionary) => dictionary.lookup(query)?.into_iter().next().ok_or_else(|| format!(\"not found {query}\").into()),\n            Self::Lazy(dictionary) => dictionary.lookup(query)?.map(|entry| entry.text).ok_or_else(|| format!(\"not found {query}\").into()),\n            _ => Err(\"no native indexed lookup API\".into()),\n        }\n    }\n}\n\nstruct Bench;\n\nimpl Bench {\n    fn memory() -> Value {\n        let status = std::fs::read_to_string(\"/proc/self/status\").unwrap_or_default();\n        let mut memory = serde_json::Map::new();\n        for line in status.lines() {\n            let mut fields = line.split_whitespace();\n            let Some(key) = fields.next() else { continue; };\n            if [\"VmRSS:\", \"VmHWM:\"].contains(&key) {\n                if let Some(value) = fields.next().and_then(|value| value.parse::<u64>().ok()) {\n                    memory.insert(key.trim_end_matches(':').to_owned(), json!(value));\n                }\n            }\n        }\n        Value::Object(memory)\n    }\n\n    fn run(kind: &str, mode: &str, path: &Path) -> Result<Value> {\n        let before = Self::memory();\n        let start = Instant::now();\n        let dictionary = Engine::open(kind, path)?;\n        let open_ms = start.elapsed().as_secs_f64() * 1000.0;\n        let after_open = Self::memory();\n        let count = dictionary.count();\n        let start = Instant::now();\n        let first = if mode == \"lookup\" {\n            dictionary.lookup(&format!(\"word{:08}\", count / 2))?\n        } else {\n            dictionary.first()?\n        };\n        let first_ms = start.elapsed().as_secs_f64() * 1000.0;\n        std::hint::black_box(&first);\n        let mut result = json!({\"engine\":kind,\"mode\":mode,\"path\":path,\"count\":count,\"open_ms\":open_ms,\"first_ms\":first_ms,\"before_kib\":before,\"open_kib\":after_open});\n        match mode {\n            \"open\" => {},\n            \"scan\" | \"probe\" => {\n                let start = Instant::now();\n                let (sink, sample) = dictionary.scan(mode == \"probe\")?;\n                result[\"scan_ms\"] = json!(start.elapsed().as_secs_f64() * 1000.0);\n                result[\"scanned\"] = json!(sink.count);\n                result[\"bytes\"] = json!(sink.bytes);\n                if mode == \"probe\" {\n                    result[\"records\"] = json!(sample);\n                }\n            }\n            \"lookup\" => {\n                for (name, repeat) in [(\"repeat\", true), (\"random\", false)] {\n                    let mut queries = Vec::with_capacity(1000);\n                    let mut state = 0x82a2b175229d6a5b_u64;\n                    for _ in 0..1000 {\n                        state = state.wrapping_mul(6364136223846793005).wrapping_add(1);\n                        let id = if repeat { count / 2 } else { state % count };\n                        queries.push(format!(\"word{id:08}\"));\n                    }\n                    let mut durations = Vec::with_capacity(queries.len());\n                    let mut bytes = 0;\n                    for query in queries {\n                        let start = Instant::now();\n                        let text = dictionary.lookup(&query)?;\n                        durations.push(start.elapsed().as_nanos() as u64);\n                        if !text.starts_with(&query) {\n                            return Err(format!(\"incorrect lookup: {query}: {text}\").into());\n                        }\n                        bytes += std::hint::black_box(text.len());\n                    }\n                    durations.sort_unstable();\n                    result[name] = json!({\"p50_us\":durations[durations.len()/2] as f64/1000.0,\"p95_us\":durations[durations.len()*95/100] as f64/1000.0,\"mean_us\":durations.iter().sum::<u64>() as f64/durations.len() as f64/1000.0,\"bytes\":bytes,\"queries\":durations.len()});\n                }\n            }\n            _ => return Err(format!(\"unknown mode {mode}\").into()),\n        }\n        result[\"end_kib\"] = Self::memory();\n        Ok(result)\n    }\n\n    fn resources(kind: &str, path: &Path) -> Result<Value> {\n        let mut result = Vec::new();\n        match kind {\n            \"woyo-reader\" => {\n                let reader = woyo::Reader::parse(std::fs::read(path)?, \"resource\")?;\n                for (id, entry) in reader.entries.iter().enumerate() {\n                    let bytes = reader.record(id)?.bytes()?;\n                    result.push(json!({\"key\":entry.headword,\"bytes\":bytes.len(),\"sum\":bytes.iter().map(|byte|u64::from(*byte)).sum::<u64>()}));\n                }\n            }\n            \"lazy\" => {\n                let dictionary = lazy::MddFile::open(path)?;\n                for entry in dictionary.entries() {\n                    let entry = entry?;\n                    result.push(json!({\"key\":entry.key,\"bytes\":entry.data.len(),\"sum\":entry.data.iter().map(|byte|u64::from(*byte)).sum::<u64>()}));\n                }\n            }\n            \"stream\" => {\n                let reader = stream::MdictReader::<stream::Mdd>::new(path,None,None,false)?;\n                for entry in reader.iter_records() {\n                    let (key, data) = entry?;\n                    match data {\n                        stream::RecordData::Content(bytes) => result.push(json!({\"key\":key,\"bytes\":bytes.len(),\"sum\":bytes.iter().map(|byte|u64::from(*byte)).sum::<u64>()})),\n                        stream::RecordData::Redirect(target) => result.push(json!({\"key\":key,\"redirect\":target})),\n                    }\n                }\n            }\n            _ => return Err(\"unsupported resource engine\".into()),\n        }\n        Ok(json!({\"engine\":kind,\"path\":path,\"resources\":result}))\n    }\n}\n\nstruct Audit;\n\nimpl Audit {\n    fn run(root: &Path) -> Result<Value> {\n        let dictionary = woyo::Mdx::parse(std::fs::read(root.join(\"duplicates.mdx\"))?, \"duplicates\")?;\n        let prefix: Vec<String> = dictionary.prefix(\"a\",2).into_iter().map(str::to_owned).collect();\n        let fuzzy: Vec<String> = dictionary.fuzzy(\"a\",1,2).into_iter().map(str::to_owned).collect();\n        let broken = woyo::Mdx::parse(std::fs::read(root.join(\"dangling.mdx\"))?,\"dangling\")?;\n        let dangling = broken.lookup(\"x\")?;\n        let cycle = broken.lookup(\"y\")?;\n        let mut chain = woyo::link::Chain { load: |_:&str| None, limit:10 };\n        let direct = chain.text(\"@@@LINK=missing\")?;\n        let old = vec![woyo::types::Entry {headword:\"old\".into(),record_offset:0}];\n        let new = vec![woyo::types::Entry {headword:\"new\".into(),record_offset:0}];\n        let cache = woyo::index::Cache {path:root.join(\"stale.idx\"),entries:1,modified:1};\n        cache.save(&woyo::Index::build(&old)?)?;\n        let loaded = cache.open(&new)?;\n        let stale = json!({\"old\":loaded.exact(\"old\"),\"new\":loaded.exact(\"new\")});\n        use std::io::Write;\n        use woyo::Decode;\n        let payload = vec![b'A';1024*1024];\n        let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(),flate2::Compression::default());\n        encoder.write_all(&payload)?;\n        let compressed = encoder.finish()?;\n        let mut block = 0x02000000_u32.to_be_bytes().to_vec();\n        block.extend_from_slice(&adler::adler32_slice(&payload).to_be_bytes());\n        block.extend_from_slice(&compressed);\n        let decoded = woyo::decompress::Block {size:1}.decode(&block)?.0;\n        let before = dictionary.lookup(\"ab\")?;\n        let mut changed = dictionary;\n        changed.reader.entries.last_mut().unwrap().headword = \"renamed\".into();\n        let field_mutation = json!({\"before\":before,\"lookup_ab\":changed.lookup(\"ab\")?,\"prefix_renamed\":changed.prefix(\"renamed\",2),\"prefix_ab\":changed.prefix(\"ab\",2)});\n        Ok(json!({\"prefix_a_limit2\":prefix,\"fuzzy_a_limit2\":fuzzy,\"dangling_lookup\":dangling,\"cycle_lookup\":cycle,\"direct_chain_dangling\":direct,\"same_stamp_cache\":stale,\"declared_block_size\":1,\"actual_zlib_output\":decoded.len(),\"public_field_mutation\":field_mutation}))\n    }\n}\n\nfn main() {\n    let arguments:Vec<String> = std::env::args().collect();\n    let result = if arguments.get(1).map(String::as_str) == Some(\"audit\") {\n        Audit::run(Path::new(&arguments[2]))\n    } else if arguments.get(2).map(String::as_str) == Some(\"resources\") {\n        Bench::resources(&arguments[1],Path::new(&arguments[3]))\n    } else {\n        Bench::run(&arguments[1],&arguments[2],Path::new(&arguments[3]))\n    };\n    match result {\n        Ok(value) => println!(\"{value}\"),\n        Err(error) => {\n            println!(\"{}\",json!({\"error\":error.to_string(),\"arguments\":arguments}));\n            std::process::exit(1);\n        }\n    }\n}\n",
+    "python_adapter_content": "import json\nimport sys\nimport time\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).parent / 'mdict-analysis'))\nsys.path.insert(0, str(Path(__file__).parent / 'pydeps'))\nfrom readmdict import MDX, MDD\n\n\nclass Bench:\n    @staticmethod\n    def memory():\n        values = {}\n        for line in Path('/proc/self/status').read_text().splitlines():\n            fields = line.split()\n            if fields and fields[0] in ('VmRSS:', 'VmHWM:'):\n                values[fields[0][:-1]] = int(fields[1])\n        return values\n\n    @classmethod\n    def run(cls, mode, path):\n        before = cls.memory()\n        start = time.perf_counter_ns()\n        reader = MDD(path) if mode == 'resources' else MDX(path)\n        open_ms = (time.perf_counter_ns() - start) / 1e6\n        after_open = cls.memory()\n        start = time.perf_counter_ns()\n        first = next(reader.items())\n        first_ms = (time.perf_counter_ns() - start) / 1e6\n        result = {'engine': 'python', 'mode': mode, 'path': path, 'count': len(reader), 'open_ms': open_ms, 'first_ms': first_ms, 'before_kib': before, 'open_kib': after_open}\n        if mode in ('scan', 'probe', 'resources'):\n            start = time.perf_counter_ns()\n            count = total = 0\n            records = []\n            for key, value in reader.items():\n                count += 1\n                total += len(value)\n                if mode == 'probe':\n                    records.append({'key': key.decode('utf-8'), 'text': value.decode('utf-8')})\n                elif mode == 'resources':\n                    records.append({'key': key.decode('utf-8'), 'bytes': len(value), 'sum': sum(value)})\n            result.update(scan_ms=(time.perf_counter_ns() - start) / 1e6, scanned=count, bytes=total)\n            if mode == 'probe':\n                result['records'] = records\n            elif mode == 'resources':\n                result['resources'] = records\n        result['end_kib'] = cls.memory()\n        return result\n\n\nif __name__ == '__main__':\n    try:\n        print(json.dumps(Bench.run(sys.argv[1], sys.argv[2]), ensure_ascii=False))\n    except Exception as error:\n        print(json.dumps({'engine': 'python', 'path': sys.argv[2], 'error': str(error), 'kind': type(error).__name__}, ensure_ascii=False))\n        raise SystemExit(1)\n",
+    "measurement_driver_content": "import json\nimport subprocess\nfrom pathlib import Path\n\n\nclass Measure:\n    root = Path(__file__).parent\n    binary = root / 'harness/target/release/mdict-comparison'\n\n    @classmethod\n    def run(cls, engine, mode, size, trial):\n        path = cls.root / 'corpus' / f'bench-{size}.mdx'\n        command = ['python', str(cls.root / 'python-bench.py'), mode, str(path)] if engine == 'python' else [str(cls.binary), engine, mode, str(path)]\n        command = ['prlimit', '--as=1073741824', '--', 'taskset', '-c', '2', *command]\n        process = subprocess.run(command, text=True, capture_output=True, timeout=180)\n        data = json.loads(process.stdout.strip().splitlines()[-1])\n        data.update(engine=engine, mode=mode, size=size, trial=trial, exit=process.returncode)\n        if process.returncode:\n            raise RuntimeError(data)\n        if mode == 'scan' and (data['scanned'] != size or data['bytes'] != size * 511):\n            raise RuntimeError(f'Unequal decoded work: {data}')\n        if mode == 'lookup':\n            for pattern in ('repeat', 'random'):\n                if data[pattern]['bytes'] != 511000:\n                    raise RuntimeError(f'Unequal lookup work: {data}')\n        return data\n\n    @classmethod\n    def main(cls):\n        output = cls.root / 'measurements.jsonl'\n        with output.open('w') as stream:\n            for size in (10000, 100000):\n                (cls.root / 'corpus' / f'bench-{size}.mdx').read_bytes()\n                for mode, trials, engines in (\n                    ('open', 9, ['woyo-reader', 'woyo-index', 'lazy', 'stream', 'python']),\n                    ('lookup', 5, ['woyo-index', 'lazy']),\n                    ('scan', 3, ['woyo-reader', 'lazy', 'stream', 'python']),\n                ):\n                    for trial in range(trials):\n                        shift = trial % len(engines)\n                        for engine in engines[shift:] + engines[:shift]:\n                            data = cls.run(engine, mode, size, trial)\n                            stream.write(json.dumps(data) + '\\n')\n                            stream.flush()\n                        print(json.dumps({'size':size,'mode':mode,'trial':trial,'complete':True}), flush=True)\n        print(json.dumps({'output':str(output),'complete':True}), flush=True)\n\n\nif __name__ == '__main__':\n    Measure.main()\n",
+    "dependency_lock_content": "# This file is automatically @generated by Cargo.\n# It is not intended for manual editing.\nversion = 4\n\n[[package]]\nname = \"adler\"\nversion = \"1.0.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe\"\n\n[[package]]\nname = \"adler2\"\nversion = \"2.0.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa\"\n\n[[package]]\nname = \"aho-corasick\"\nversion = \"1.1.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba\"\ndependencies = [\n \"memchr\",\n]\n\n[[package]]\nname = \"anstream\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"824a212faf96e9acacdbd09febd34438f8f711fb84e09a8916013cd7815ca28d\"\ndependencies = [\n \"anstyle\",\n \"anstyle-parse\",\n \"anstyle-query\",\n \"anstyle-wincon\",\n \"colorchoice\",\n \"is_terminal_polyfill\",\n \"utf8parse\",\n]\n\n[[package]]\nname = \"anstyle\"\nversion = \"1.0.14\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000\"\n\n[[package]]\nname = \"anstyle-parse\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e\"\ndependencies = [\n \"utf8parse\",\n]\n\n[[package]]\nname = \"anstyle-query\"\nversion = \"1.1.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc\"\ndependencies = [\n \"windows-sys\",\n]\n\n[[package]]\nname = \"anstyle-wincon\"\nversion = \"3.0.11\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d\"\ndependencies = [\n \"anstyle\",\n \"once_cell_polyfill\",\n \"windows-sys\",\n]\n\n[[package]]\nname = \"bitflags\"\nversion = \"1.3.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a\"\n\n[[package]]\nname = \"block-buffer\"\nversion = \"0.10.4\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71\"\ndependencies = [\n \"generic-array\",\n]\n\n[[package]]\nname = \"byteorder\"\nversion = \"1.5.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b\"\n\n[[package]]\nname = \"cc\"\nversion = \"1.4.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"005ec2760ca554fae18df7a11195552ec576cd665632a881bc011d5bb2fd4d80\"\ndependencies = [\n \"find-msvc-tools\",\n \"shlex\",\n]\n\n[[package]]\nname = \"cfg-if\"\nversion = \"1.0.4\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801\"\n\n[[package]]\nname = \"clap\"\nversion = \"4.6.6\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"473c7e07f409a8d772161724aa8db6a765a2532a70f9667eeb7b49d3d02fbdca\"\ndependencies = [\n \"clap_builder\",\n \"clap_derive\",\n]\n\n[[package]]\nname = \"clap_builder\"\nversion = \"4.6.6\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7b48fea5a88e9ae728a2dcbedbfc0e730f7d60da42e1cb049a83c9fb8b789889\"\ndependencies = [\n \"anstream\",\n \"anstyle\",\n \"clap_lex\",\n \"strsim\",\n]\n\n[[package]]\nname = \"clap_derive\"\nversion = \"4.6.4\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"d012d2b9d65aca7f18f4d9878a045bc17899bba951561ba5ec3c2ba1eed9a061\"\ndependencies = [\n \"heck\",\n \"proc-macro2\",\n \"quote\",\n \"syn 3.0.5\",\n]\n\n[[package]]\nname = \"clap_lex\"\nversion = \"1.1.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9\"\n\n[[package]]\nname = \"colorchoice\"\nversion = \"1.0.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570\"\n\n[[package]]\nname = \"crc32fast\"\nversion = \"1.5.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"8498c871161e1742aaa9d52551b2d6ebdd4c3d45a3be423e3728f33b955be550\"\ndependencies = [\n \"cfg-if\",\n]\n\n[[package]]\nname = \"crypto-common\"\nversion = \"0.1.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a\"\ndependencies = [\n \"generic-array\",\n \"typenum\",\n]\n\n[[package]]\nname = \"defmt\"\nversion = \"1.1.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"e2953bfe4f93bbd20cc71198842756f77d161884c99ebbabc41d80231ded88d1\"\ndependencies = [\n \"bitflags\",\n \"defmt-macros\",\n]\n\n[[package]]\nname = \"defmt-macros\"\nversion = \"1.1.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"bad9c72e7ca2137e0dc3813245a0d282fd6daad32fd800af018306a9169b5fe8\"\ndependencies = [\n \"defmt-parser\",\n \"proc-macro2\",\n \"quote\",\n \"syn 2.0.119\",\n]\n\n[[package]]\nname = \"defmt-parser\"\nversion = \"1.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"10d60334b3b2e7c9d91ef8150abfb6fa4c1c39ebbcf4a81c2e346aad939fee3e\"\ndependencies = [\n \"thiserror\",\n]\n\n[[package]]\nname = \"digest\"\nversion = \"0.10.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292\"\ndependencies = [\n \"block-buffer\",\n \"crypto-common\",\n]\n\n[[package]]\nname = \"encoding_rs\"\nversion = \"0.8.35\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3\"\ndependencies = [\n \"cfg-if\",\n]\n\n[[package]]\nname = \"env_filter\"\nversion = \"2.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"900d271a03799a1ee8d1ca9b19893b48ca674a9284fefcfb85f05e74ed314217\"\ndependencies = [\n \"log\",\n \"regex\",\n]\n\n[[package]]\nname = \"env_logger\"\nversion = \"0.11.11\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"de671bd27a75a797dc9ae289ba1e77276e75e2026408aab65185384e2d5cd3f6\"\ndependencies = [\n \"anstream\",\n \"anstyle\",\n \"env_filter\",\n \"jiff\",\n \"log\",\n]\n\n[[package]]\nname = \"find-msvc-tools\"\nversion = \"0.1.12\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3e0f1c7c3a72c66fd80abe965175f7523475c0489a87d3ff9d6e8c87d87a9d2d\"\n\n[[package]]\nname = \"flate2\"\nversion = \"1.1.10\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb\"\ndependencies = [\n \"crc32fast\",\n \"miniz_oxide 0.9.1\",\n \"zlib-rs\",\n]\n\n[[package]]\nname = \"fst\"\nversion = \"0.4.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7ab85b9b05e3978cc9a9cf8fea7f01b494e1a09ed3037e16ba39edc7a29eb61a\"\ndependencies = [\n \"utf8-ranges\",\n]\n\n[[package]]\nname = \"generic-array\"\nversion = \"0.14.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a\"\ndependencies = [\n \"typenum\",\n \"version_check\",\n]\n\n[[package]]\nname = \"heck\"\nversion = \"0.5.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea\"\n\n[[package]]\nname = \"hex\"\nversion = \"0.4.3\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70\"\n\n[[package]]\nname = \"is_terminal_polyfill\"\nversion = \"1.70.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695\"\n\n[[package]]\nname = \"itoa\"\nversion = \"1.0.18\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682\"\n\n[[package]]\nname = \"jiff\"\nversion = \"0.2.35\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"668b7183bd07af9a4885f5c35b0cc5c83c4607a913c16b7e17291832910d2dcc\"\ndependencies = [\n \"defmt\",\n \"jiff-core\",\n \"jiff-static\",\n \"log\",\n \"portable-atomic\",\n \"portable-atomic-util\",\n \"serde_core\",\n]\n\n[[package]]\nname = \"jiff-core\"\nversion = \"0.1.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7feca88439efe53da3754500c1851dedf3cb36c524dd5cf8225cc0794de95d09\"\ndependencies = [\n \"defmt\",\n]\n\n[[package]]\nname = \"jiff-static\"\nversion = \"0.2.35\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3a69dcb3a21cfb32ce1cd056169337ca284af0766dd766e7878819b251a49204\"\ndependencies = [\n \"jiff-core\",\n \"proc-macro2\",\n \"quote\",\n \"syn 2.0.119\",\n]\n\n[[package]]\nname = \"libc\"\nversion = \"0.2.189\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2\"\n\n[[package]]\nname = \"log\"\nversion = \"0.4.34\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6\"\n\n[[package]]\nname = \"lzokay\"\nversion = \"2.0.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"953d350dc065718bb00b61ea2118274ffe2fdf6488f32f720422bcd1c9d6025f\"\ndependencies = [\n \"zerocopy\",\n]\n\n[[package]]\nname = \"mdict\"\nversion = \"0.1.0\"\ndependencies = [\n \"adler\",\n \"encoding_rs\",\n \"flate2\",\n \"fst\",\n \"memmap2\",\n \"minilzo-rs\",\n \"quick-xml 0.37.5\",\n \"ripemd\",\n \"thiserror\",\n \"tracing\",\n \"unicode-normalization\",\n]\n\n[[package]]\nname = \"mdict-comparison\"\nversion = \"0.0.0\"\ndependencies = [\n \"adler\",\n \"flate2\",\n \"mdict\",\n \"mdict-reader\",\n \"mdict-rs\",\n \"memmap2\",\n \"serde_json\",\n]\n\n[[package]]\nname = \"mdict-reader\"\nversion = \"0.1.0\"\ndependencies = [\n \"adler2\",\n \"byteorder\",\n \"clap\",\n \"encoding_rs\",\n \"env_logger\",\n \"flate2\",\n \"hex\",\n \"log\",\n \"lzokay\",\n \"quick-xml 0.38.4\",\n \"regex\",\n \"ripemd\",\n \"serde_json\",\n \"thiserror\",\n \"twox-hash\",\n]\n\n[[package]]\nname = \"mdict-rs\"\nversion = \"0.1.4\"\ndependencies = [\n \"encoding_rs\",\n \"lzokay\",\n \"miniz_oxide 0.8.9\",\n]\n\n[[package]]\nname = \"memchr\"\nversion = \"2.8.3\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98\"\n\n[[package]]\nname = \"memmap2\"\nversion = \"0.9.11\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"d1219ed1b7f229ee7104d281dd01d6802fe28bb6e95d292942c4daacdeb798c0\"\ndependencies = [\n \"libc\",\n]\n\n[[package]]\nname = \"minilzo-rs\"\nversion = \"0.6.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"c71a19a4b57d7712a7946e51a7a998f1d8252e16000706ae63243e951fcfce09\"\ndependencies = [\n \"cc\",\n]\n\n[[package]]\nname = \"miniz_oxide\"\nversion = \"0.8.9\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316\"\ndependencies = [\n \"adler2\",\n]\n\n[[package]]\nname = \"miniz_oxide\"\nversion = \"0.9.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c\"\ndependencies = [\n \"adler2\",\n \"simd-adler32\",\n]\n\n[[package]]\nname = \"once_cell\"\nversion = \"1.21.4\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50\"\n\n[[package]]\nname = \"once_cell_polyfill\"\nversion = \"1.70.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe\"\n\n[[package]]\nname = \"pin-project-lite\"\nversion = \"0.2.17\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd\"\n\n[[package]]\nname = \"portable-atomic\"\nversion = \"1.15.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"05c8b63e8d9609db387f0324918f81d68fe27748f084ef092fb35954d0539a85\"\n\n[[package]]\nname = \"portable-atomic-util\"\nversion = \"0.2.8\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"10ab3eb7f3becc3a1cbc4f2c6f20267996cfc1a6467a873763411b136a122715\"\ndependencies = [\n \"portable-atomic\",\n]\n\n[[package]]\nname = \"proc-macro2\"\nversion = \"1.0.107\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9\"\ndependencies = [\n \"unicode-ident\",\n]\n\n[[package]]\nname = \"quick-xml\"\nversion = \"0.37.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"331e97a1af0bf59823e6eadffe373d7b27f485be8748f71471c662c1f269b7fb\"\ndependencies = [\n \"memchr\",\n]\n\n[[package]]\nname = \"quick-xml\"\nversion = \"0.38.4\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"b66c2058c55a409d601666cffe35f04333cf1013010882cec174a7467cd4e21c\"\ndependencies = [\n \"memchr\",\n]\n\n[[package]]\nname = \"quote\"\nversion = \"1.0.47\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001\"\ndependencies = [\n \"proc-macro2\",\n]\n\n[[package]]\nname = \"regex\"\nversion = \"1.13.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d\"\ndependencies = [\n \"aho-corasick\",\n \"memchr\",\n \"regex-automata\",\n \"regex-syntax\",\n]\n\n[[package]]\nname = \"regex-automata\"\nversion = \"0.4.18\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2\"\ndependencies = [\n \"aho-corasick\",\n \"memchr\",\n \"regex-syntax\",\n]\n\n[[package]]\nname = \"regex-syntax\"\nversion = \"0.8.11\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4\"\n\n[[package]]\nname = \"ripemd\"\nversion = \"0.1.3\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"bd124222d17ad93a644ed9d011a40f4fb64aa54275c08cc216524a9ea82fb09f\"\ndependencies = [\n \"digest\",\n]\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.229\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba\"\ndependencies = [\n \"serde_core\",\n]\n\n[[package]]\nname = \"serde_core\"\nversion = \"1.0.229\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48\"\ndependencies = [\n \"serde_derive\",\n]\n\n[[package]]\nname = \"serde_derive\"\nversion = \"1.0.229\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"syn 3.0.5\",\n]\n\n[[package]]\nname = \"serde_json\"\nversion = \"1.0.151\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14\"\ndependencies = [\n \"itoa\",\n \"memchr\",\n \"serde\",\n \"serde_core\",\n \"zmij\",\n]\n\n[[package]]\nname = \"shlex\"\nversion = \"2.0.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba\"\n\n[[package]]\nname = \"simd-adler32\"\nversion = \"0.3.10\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea\"\n\n[[package]]\nname = \"strsim\"\nversion = \"0.11.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f\"\n\n[[package]]\nname = \"syn\"\nversion = \"2.0.119\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"unicode-ident\",\n]\n\n[[package]]\nname = \"syn\"\nversion = \"3.0.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"12df2e0110f65b775f769bb17ef989067a1d931b2eb822bd4346631eeada89f9\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"unicode-ident\",\n]\n\n[[package]]\nname = \"thiserror\"\nversion = \"2.0.20\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ec86235f5fcc2a73650310756d2ac5b138a5780bbbdfae3eeccec992c435ba4f\"\ndependencies = [\n \"thiserror-impl\",\n]\n\n[[package]]\nname = \"thiserror-impl\"\nversion = \"2.0.20\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"bc04cd3e1236dd4a98afca4569f2deb3f120e5422a4023be2cb683f8486292af\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"syn 3.0.5\",\n]\n\n[[package]]\nname = \"tinyvec\"\nversion = \"1.13.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"4cf0ded5c4e56918d8f8a339e1bb67d038d3bc6d144ac407904015ba2e4cde9b\"\ndependencies = [\n \"tinyvec_macros\",\n]\n\n[[package]]\nname = \"tinyvec_macros\"\nversion = \"0.1.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20\"\n\n[[package]]\nname = \"tracing\"\nversion = \"0.1.44\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"63e71662fa4b2a2c3a26f570f037eb95bb1f85397f3cd8076caed2f026a6d100\"\ndependencies = [\n \"pin-project-lite\",\n \"tracing-attributes\",\n \"tracing-core\",\n]\n\n[[package]]\nname = \"tracing-attributes\"\nversion = \"0.1.31\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7490cfa5ec963746568740651ac6781f701c9c5ea257c58e057f3ba8cf69e8da\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"syn 2.0.119\",\n]\n\n[[package]]\nname = \"tracing-core\"\nversion = \"0.1.36\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a\"\ndependencies = [\n \"once_cell\",\n]\n\n[[package]]\nname = \"twox-hash\"\nversion = \"2.1.4\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"5283634e518fe9e82c7b20520bb4bc209009fd16c82077c802f8111ecbb0117a\"\n\n[[package]]\nname = \"typenum\"\nversion = \"1.20.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20\"\n\n[[package]]\nname = \"unicode-ident\"\nversion = \"1.0.24\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75\"\n\n[[package]]\nname = \"unicode-normalization\"\nversion = \"0.1.25\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8\"\ndependencies = [\n \"tinyvec\",\n]\n\n[[package]]\nname = \"utf8-ranges\"\nversion = \"1.0.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"7fcfc827f90e53a02eaef5e535ee14266c1d569214c6aa70133a624d8a3164ba\"\n\n[[package]]\nname = \"utf8parse\"\nversion = \"0.2.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821\"\n\n[[package]]\nname = \"version_check\"\nversion = \"0.9.5\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a\"\n\n[[package]]\nname = \"windows-link\"\nversion = \"0.2.1\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5\"\n\n[[package]]\nname = \"windows-sys\"\nversion = \"0.61.2\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc\"\ndependencies = [\n \"windows-link\",\n]\n\n[[package]]\nname = \"zerocopy\"\nversion = \"0.8.56\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"556764e583adb45a9f8d413c2a147fa7e8d821e48e12b14fd560b607998b75eb\"\ndependencies = [\n \"zerocopy-derive\",\n]\n\n[[package]]\nname = \"zerocopy-derive\"\nversion = \"0.8.56\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1\"\ndependencies = [\n \"proc-macro2\",\n \"quote\",\n \"syn 2.0.119\",\n]\n\n[[package]]\nname = \"zlib-rs\"\nversion = \"0.6.7\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"34b31d188d9d685a4f9c7b46d6e36631b07058d2cfe190267adce54dc230bf12\"\n\n[[package]]\nname = \"zmij\"\nversion = \"1.0.23\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b\"\n",
+    "corpus_seed": 918732,
+    "record_recipe": "word = f'word{number:08}'; entropy = random.Random(918732).randbytes(256).hex() consumed sequentially per record; payload=(word+'|'+entropy)[:511].encode()+b'\\0'; key blocks hold 512 entries; record blocks hold 128 records; zlib level 6; checksum and UTF16LE NUL-terminated header follow MDX v2.",
+    "corpus_generator_script": "import random\nimport struct\nimport sys\nimport zlib\nfrom pathlib import Path\n\n\nclass Corpus:\n    @staticmethod\n    def block(payload):\n        checksum = zlib.adler32(payload)\n        return struct.pack('>II', 0x02000000, checksum) + zlib.compress(payload)\n\n    @classmethod\n    def build(cls, count, block_records=128, key_records=512):\n        randomizer = random.Random(918732)\n        rows = []\n        for number in range(count):\n            word = f'word{number:08}'\n            entropy = randomizer.randbytes(256).hex()\n            record = (word + '|' + entropy)[:511].encode() + b'\\0'\n            rows.append((word, record))\n        xml = '<Dictionary GeneratedByEngineVersion=\"2.0\" Encoding=\"UTF-8\" Encrypted=\"0\" Title=\"woyodict independent benchmark\" Description=\"Generated ASCII unique keys\" Left2Right=\"Yes\" KeyCaseSensitive=\"Yes\" StripKey=\"No\" />'\n        header_text = xml.encode('utf-16le') + b'\\0\\0'\n        header = struct.pack('>I', len(header_text)) + header_text + struct.pack('<I', zlib.adler32(header_text))\n        key_blocks = []\n        key_info = bytearray()\n        for first in range(0, count, key_records):\n            group = rows[first:first + key_records]\n            raw = b''.join(struct.pack('>Q', (first + offset) * 512) + word.encode() + b'\\0' for offset, (word, _) in enumerate(group))\n            block = cls.block(raw)\n            key_blocks.append(block)\n            key_info.extend(struct.pack('>Q', len(group)))\n            for word in (group[0][0], group[-1][0]):\n                key_info.extend(struct.pack('>H', len(word)) + word.encode() + b'\\0')\n            key_info.extend(struct.pack('>QQ', len(block), len(raw)))\n        key_info_block = cls.block(key_info)\n        key_header = struct.pack('>QQQQQ', len(key_blocks), count, len(key_info), len(key_info_block), sum(map(len, key_blocks)))\n        key_header += struct.pack('>I', zlib.adler32(key_header))\n        record_blocks = []\n        record_info = bytearray()\n        for first in range(0, count, block_records):\n            raw = b''.join(record for _, record in rows[first:first + block_records])\n            block = cls.block(raw)\n            record_blocks.append(block)\n            record_info.extend(struct.pack('>QQ', len(block), len(raw)))\n        record_header = struct.pack('>QQQQ', len(record_blocks), count, len(record_info), sum(map(len, record_blocks)))\n        return header + key_header + key_info_block + b''.join(key_blocks) + record_header + record_info + b''.join(record_blocks)\n\n\nif __name__ == '__main__':\n    output = Path(sys.argv[1])\n    output.mkdir(parents=True, exist_ok=True)\n    for count in (10000, 100000):\n        (output / f'bench-{count}.mdx').write_bytes(Corpus.build(count))\n",
+    "generator_replay_verified": {
+      "bench-100000.mdx": "ea5b68d9d3d33c3aae55351e2aca95d7032e660c01fa3e618559adda8f97e867",
+      "bench-10000.mdx": "2522693e52adef8449aaa7877747bbdd13e2a4ca89f2e9f3d326b0920ef511ca"
+    }
+  },
+  "references": [
+    "https://github.com/Initsnow/mdict-rs/tree/d4bc67d1128e9561a27b714f085ad970dfed6c09",
+    "https://github.com/whistooy/mdict-reader/tree/e25373923035f06156dbfa8aedeb802b5167e6df",
+    "https://github.com/liuyug/mdict-analysis/tree/927f91a5746b5de763aeffb54919647634e8099a",
+    "https://github.com/terasum/js-mdict",
+    "https://github.com/terasum/js-mdict/blob/master/src/utils.ts#L276-L303"
+  ]
+}

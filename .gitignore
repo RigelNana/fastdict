@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.mydict/
+.fastdict/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+vendor/wodix/.git/
+.impeccable/review/
+.agents/
+.codex/
+.aws/
+.DS_Store
+*.log

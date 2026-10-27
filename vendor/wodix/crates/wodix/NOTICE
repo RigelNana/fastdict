@@ -1,0 +1,33 @@
+Wodix source provenance
+
+Project: Wodix
+Repository: https://github.com/RigelNana/wodix
+Rust package and crate namespace: wodix
+
+The initial parser was imported from:
+  Repository: https://github.com/RigelNana/memowords
+  Revision: 21039c430e79c4cda80238aafef6d3f0e4275c9d
+  Path in the upstream repository: crates/mdict
+
+License evidence at that revision:
+  - The workspace Cargo.toml declares license = "MIT".
+  - crates/mdict/Cargo.toml inherits license.workspace = true.
+  - The inspected upstream root listing has no standalone LICENSE file;
+    GitHub's license endpoint for the revision also returned no license file.
+
+The existing MIT designation is retained, with the standard terms in LICENSE.
+The collective contributor attribution does not assert an individual author or
+an unverified copyright year. This notice records provenance; it is not an
+independent legal or authorship audit. General Rust dependencies retain their
+own licenses and are declared through Cargo rather than vendored here.
+
+The project previously used the local name woyodict and the package name
+mdict. Historical benchmark reports, reproducible corpus metadata, and cache
+wire identifiers retain their recorded values. In particular, changing the
+crate name does not change the version-3 cache fingerprint domain or MDict
+resource/index filename conventions. These retained identifiers are not
+public Rust namespace aliases.
+
+Upstream license evidence:
+  https://github.com/RigelNana/memowords/blob/21039c430e79c4cda80238aafef6d3f0e4275c9d/Cargo.toml
+  https://github.com/RigelNana/memowords/blob/21039c430e79c4cda80238aafef6d3f0e4275c9d/crates/mdict/Cargo.toml

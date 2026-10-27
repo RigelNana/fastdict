@@ -1,0 +1,5 @@
+/target/
+/crates/wodix/tests/fixtures/
+/crates/wodix/tests/data/*.idx
+/crates/wodix/tests/data/*.idx.lock
+/tools/__pycache__/
