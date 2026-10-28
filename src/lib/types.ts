@@ -90,6 +90,8 @@ export interface Job {
   progress: number
   total: number
   error: string | null
+  stage?: string
+  detail?: string
 }
 export interface Bootstrap {
   dictionaries: Dictionary[]

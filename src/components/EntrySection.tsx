@@ -1,17 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, BookOpenText, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { api, apiBlob } from '@/lib/api'
+import { api, apiBlob, getConnection } from '@/lib/api'
 import type { Article, Dictionary, LookupResponse, Settings } from '@/lib/types'
 import { articleThemeResource, fetchArticleThemeResource } from '@/lib/article-theme'
+import { articleDocument, dictionaryStorageKey, readArticleStorage, updateArticleStorage } from '@/lib/article-storage'
 import darkreaderUrl from 'darkreader/darkreader.js?url'
+
+function ArticleLoading() {
+  return <div className="article-loading" role="status" aria-label="正在载入词条">
+    <span /><span /><span />
+  </div>
+}
 
 function ArticleFrame({
   article,
+  dictionary,
   title,
   appearance,
   theme,
@@ -20,6 +27,7 @@ function ArticleFrame({
   anchor,
 }: {
   article: Article
+  dictionary: Dictionary
   title: string
   appearance: Settings['appearance']
   theme: 'light' | 'dark'
@@ -31,8 +39,11 @@ function ArticleFrame({
   const client = useQueryClient()
   // Set the first paint's theme in the document. Later theme changes use the bridge,
   // keeping the iframe, selection, audio and dictionary scripts mounted.
-  const srcDoc = useMemo(() => article.html.replace('<html ', `<html data-fastdict-theme="${theme}" `), [article.html])
-  const [height, setHeight] = useState(120)
+  const storageKey = dictionaryStorageKey(getConnection().base_url, dictionary.id)
+  const srcDoc = useMemo(() => articleDocument(article.html, theme, {
+    local: readArticleStorage(storageKey, 'local'), session: readArticleStorage(storageKey, 'session'),
+  }, { ...appearance, themeRuntimeUrl: new URL(darkreaderUrl, window.location.href).href }), [article.html, storageKey])
+  const [{ height, ready }, setGeometry] = useState({ height: 120, ready: !article.html.includes('id="fastdict-initial-style"') })
   useEffect(() => {
     const clear = () => frame.current?.contentWindow?.postMessage({ type: 'fastdict:clear-selection' }, '*')
     const otherFrame = (event: Event) => {
@@ -45,7 +56,7 @@ function ArticleFrame({
       window.removeEventListener('fastdict:article-focus', otherFrame)
     }
   }, [])
-  useEffect(() => {
+  useLayoutEffect(() => {
     let live = true
     const pendingThemeResources = new Set<number>()
     function onMessage(event: MessageEvent) {
@@ -56,6 +67,10 @@ function ArticleFrame({
       )
         return
       const data = event.data as Record<string, unknown>
+      if (data.type === 'fastdict:storage' && dictionary.trust_scripts) {
+        updateArticleStorage(storageKey, data)
+        return
+      }
       if (data.type === 'fastdict:theme-resource') {
         if (typeof data.requestId !== 'number' || !Number.isSafeInteger(data.requestId) ||
           data.requestId < 1 || typeof data.url !== 'string' || pendingThemeResources.has(data.requestId)) return
@@ -83,11 +98,15 @@ function ArticleFrame({
     }
     window.addEventListener('message', onMessage)
     return () => { live = false; window.removeEventListener('message', onMessage) }
-  }, [article.html, client])
-  useEffect(() => {
+  }, [article.html, client, storageKey, dictionary.trust_scripts])
+  useLayoutEffect(() => {
     function onMessage(event: MessageEvent) {
       if (event.source !== frame.current?.contentWindow || !event.data || typeof event.data !== 'object') return
       const data = event.data as Record<string, unknown>
+      if (data.type === 'fastdict:ready' && typeof data.height === 'number' && Number.isFinite(data.height)) {
+        setGeometry({ height: Math.min(500_000, Math.max(40, data.height)), ready: true })
+        return
+      }
       // A collapsed frame keeps its measured height and cannot navigate the reader.
       if (!frame.current?.getClientRects().length) return
       if (data.type === 'fastdict:focus') {
@@ -98,7 +117,7 @@ function ArticleFrame({
         typeof data.height === 'number' &&
         Number.isFinite(data.height)
       )
-        setHeight(Math.min(500_000, Math.max(40, data.height)))
+        setGeometry(current => current.ready ? { ...current, height: Math.min(500_000, Math.max(40, data.height as number)) } : current)
       if (
         data.type === 'fastdict:navigate' &&
         typeof data.word === 'string' &&
@@ -132,10 +151,12 @@ function ArticleFrame({
   function sendStyle() {
     frame.current?.contentWindow?.postMessage({ type: 'fastdict:style', ...appearance, theme,
       themeRuntimeUrl: new URL(darkreaderUrl, window.location.href).href }, '*')
-    if (anchor) frame.current?.contentWindow?.postMessage({ type: 'fastdict:anchor', anchor }, '*')
+    if (anchor && ready) frame.current?.contentWindow?.postMessage({ type: 'fastdict:anchor', anchor }, '*')
   }
-  useEffect(sendStyle, [appearance, theme, anchor])
+  useEffect(sendStyle, [appearance, theme, anchor, ready])
   return (
+    <div className="article-stage" data-ready={ready} aria-busy={!ready}>
+    {!ready && <ArticleLoading />}
     <iframe
       ref={frame}
       title={title}
@@ -143,9 +164,12 @@ function ArticleFrame({
       sandbox="allow-scripts"
       referrerPolicy="no-referrer"
       className="article-frame"
+      aria-hidden={!ready}
+      tabIndex={ready ? undefined : -1}
       style={{ height }}
       onLoad={sendStyle}
     />
+    </div>
   )
 }
 
@@ -245,9 +269,9 @@ export default function EntrySection({
   return (
     <AccordionItem value={dictionary.id} className="dictionary-section border-0">
       <AccordionTrigger className="dictionary-heading hover:no-underline">
-        <span className="flex min-w-0 items-center gap-3">
+        <span className="flex min-w-0 flex-1 items-center gap-3">
           <DictionaryIcon dictionary={dictionary} />
-          <span className="truncate">{dictionary.name}</span>
+          <span className="min-w-0 truncate" title={dictionary.name}>{dictionary.name}</span>
         </span>
       </AccordionTrigger>
       <AccordionContent
@@ -255,13 +279,7 @@ export default function EntrySection({
         hidden={!expanded}
         className="dictionary-body pb-0"
       >
-        {result.isPending && (
-          <div className="space-y-3 py-4" role="status" aria-label="正在载入词条">
-            <Skeleton className="h-4 w-4/5" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/5" />
-          </div>
-        )}
+        {result.isPending && <ArticleLoading />}
         {result.error && (
           <div className="flex items-start gap-3 py-4 text-sm text-destructive" role="alert">
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -280,7 +298,9 @@ export default function EntrySection({
         {result.data?.articles.map((article, index) => (
           <div key={index} className="article-part">
             <ArticleFrame
+              key={article.html}
               article={article}
+              dictionary={dictionary}
               title={`${dictionary.name} · ${word} · ${index + 1}`}
               appearance={appearance}
               theme={theme}

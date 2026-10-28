@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useLocation, useMatch, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'motion/react'
@@ -12,9 +12,9 @@ import {
   ChevronDown,
   Clock3,
   ExternalLink,
+  House,
   ListFilter,
   MoreHorizontal,
-  Search,
   Trash2,
   X,
 } from 'lucide-react'
@@ -41,11 +41,14 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import EntrySection from '@/components/EntrySection'
 import { api, useBootstrap } from '@/lib/api'
 import type { Dictionary, Settings, SuggestionResponse } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { matchingHeadwords, normalizeHeadword as normalize } from '@/lib/suggestion-cache'
+import { pendingSuggestions, normalizeHeadword as normalize, type SuggestionDisplay } from '@/lib/suggestion-cache'
+import { readWordTrail, visitWord } from '@/lib/word-navigation'
+import { searchOffsets } from '@/lib/search-layout'
 
 
 export default function DictionaryPage({ theme, visible = true }: { theme: 'light' | 'dark'; visible?: boolean }) {
@@ -55,6 +58,23 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
   const location = useLocation()
   const match = useMatch('/word/:word')
   const word = match?.params.word ?? ''
+  const navigationState = location.state as { preserve_search?: boolean; word_visit_key?: string } | null
+  const positionKey = navigationState?.word_visit_key ?? location.key
+  const [wordTrail, setWordTrail] = useState(() => {
+    try { return readWordTrail(sessionStorage.getItem('fastdict.word-trail')) }
+    catch { return readWordTrail(null) }
+  })
+  const previousWord = wordTrail.entries[wordTrail.index - 1]
+  useLayoutEffect(() => {
+    if (!word) return
+    setWordTrail(trail => visitWord(trail, {
+      key: positionKey, word, url: location.pathname + location.search,
+    }))
+  }, [word, positionKey, location.pathname, location.search])
+  useEffect(() => {
+    try { sessionStorage.setItem('fastdict.word-trail', JSON.stringify(wordTrail)) }
+    catch { /* Navigation remains available when session storage is unavailable. */ }
+  }, [wordTrail])
   const [parameters] = useSearchParams()
   const [localGroup, setLocalGroup] = useState(() => sessionStorage.getItem('fastdict.group') ?? '')
   const group =
@@ -64,22 +84,33 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
   const anchor = parameters.get('anchor') ?? undefined
   const [query, setQuery] = useState(word)
   const [active, setActive] = useState(false)
+  const [candidateValue, setCandidateValue] = useState('')
   const [composing, setComposing] = useState(false)
   const [fulltextQuery, setFulltextQuery] = useState(() => normalize(word))
   const [mode, setMode] = useState<'headword' | 'fulltext'>('headword')
+  const historySelection = useRef(0)
+  const pendingSubmission = useRef<string | null>(null)
+  const searchContext = useRef('')
+  searchContext.current = JSON.stringify([query, group, mode, location.key, visible, active])
   const [expanded, setExpanded] = useState<string[]>([])
   const expandedRef = useRef(expanded)
   expandedRef.current = expanded
   const [external, setExternal] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
   const searchBox = useRef<HTMLElement>(null)
-  const [dockOffset, setDockOffset] = useState(0)
-  const [homeOffset, setHomeOffset] = useState(() => Math.max(0, (window.innerHeight - (window.innerWidth <= 760 ? 60 : 0) - 92) * 0.4))
+  const candidateArea = useRef<HTMLDivElement>(null)
+  const candidateHeight = useRef<{ scope: string; height: number } | null>(null)
+  const [offsets, setOffsets] = useState(() => searchOffsets(window.visualViewport?.height ?? window.innerHeight, window.visualViewport?.offsetTop ?? 0, 92))
   const suppressFocus = useRef(false)
   const reducedMotion = useReducedMotion()
   const appearance = bootstrap.data?.settings.appearance
   const animated = appearance?.motion !== false && !reducedMotion
   const isEntry = Boolean(word)
+
+  useLayoutEffect(() => {
+    // cmdk assumes a permanently open list; this list also has a collapsed state.
+    input.current?.setAttribute('aria-expanded', String(active))
+  }, [active])
 
   useEffect(() => {
     if (mode !== 'fulltext' || composing) return
@@ -92,12 +123,10 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
     const resize = () => {
       const height = viewport?.height ?? window.innerHeight
       const top = viewport?.offsetTop ?? 0
-      const header = document.querySelector('.workspace-header')?.getBoundingClientRect().height ?? 0
       const boxHeight = searchBox.current?.offsetHeight ?? 92
       document.documentElement.style.setProperty('--visual-height', `${height}px`)
-      const available = Math.max(0, top + height - header - boxHeight)
-      setDockOffset(available)
-      setHomeOffset(available * 0.4)
+      searchBox.current?.parentElement?.style.setProperty('--search-height', `${boxHeight}px`)
+      setOffsets(searchOffsets(height, top, boxHeight))
     }
     viewport?.addEventListener('resize', resize)
     viewport?.addEventListener('scroll', resize)
@@ -114,8 +143,12 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
   }, [visible])
   useLayoutEffect(() => {
     if (!(location.state as { preserve_search?: boolean } | null)?.preserve_search) {
+      suppressFocus.current = true
+      input.current?.blur()
       setQuery(word)
       setActive(false)
+      setCandidateValue('')
+      requestAnimationFrame(() => { suppressFocus.current = false })
     }
     document.title = word ? `${word} · fastdict` : 'fastdict · 查词'
   }, [word, location.key])
@@ -123,7 +156,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
   const beginSearch = useCallback(() => {
     setActive(true)
     requestAnimationFrame(() => {
-      input.current?.focus()
+      input.current?.focus({ preventScroll: true })
       input.current?.select()
     })
   }, [])
@@ -203,7 +236,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
 
   const suggestionQuery = mode === 'headword' ? normalize(query) : fulltextQuery
   const suggestionKey = ['suggest', suggestionQuery, group, mode] as const
-  const suggestions = useQuery({
+  const suggestions = useQuery<SuggestionDisplay>({
     queryKey: suggestionKey,
     queryFn: ({ signal }) =>
       api<SuggestionResponse>(
@@ -213,19 +246,15 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
     // Prepare the current word before focus; reopening must not restart loading.
     enabled: visible && !composing && Boolean(suggestionQuery) && Boolean(bootstrap.data),
     staleTime: 30_000,
-    placeholderData: (previous, previousQuery) => matchingHeadwords(previous, previousQuery?.queryKey, suggestionKey),
+    placeholderData: (previous, previousQuery) => pendingSuggestions(previous, previousQuery?.queryKey, suggestionKey),
   })
   const hits = useQuery({
-    queryKey: [
-      'hits',
-      word,
-      group,
-      bootstrap.data?.stats.words,
-      allDictionaries.map((item) => `${item.id}:${item.enabled}`).join(','),
-    ],
+    // Search already identifies the dictionaries. Share its exact query/cache
+    // instead of starting a second request before mounting the selected article.
+    queryKey: ['suggest', normalize(word), group, 'headword'],
     queryFn: ({ signal }) =>
       api<SuggestionResponse>(
-        `/suggest?q=${encodeURIComponent(word)}&group=${encodeURIComponent(group)}&mode=headword&limit=100`,
+        `/suggest?q=${encodeURIComponent(normalize(word))}&group=${encodeURIComponent(group)}&mode=headword&limit=30`,
         { signal },
       ),
     enabled: isEntry && Boolean(bootstrap.data),
@@ -255,7 +284,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
   useLayoutEffect(() => {
     history.scrollRestoration = 'manual'
     if ((location.state as { preserve_search?: boolean } | null)?.preserve_search) return
-    const key = `fastdict.position.${location.key}`
+    const key = `fastdict.position.${positionKey}`
     let saved: { scroll: number; expanded: string[] } | null = null
     try {
       saved = JSON.parse(sessionStorage.getItem(key) ?? 'null')
@@ -290,7 +319,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
         JSON.stringify({ scroll: window.scrollY, expanded: expandedRef.current }),
       )
     }
-  }, [location.key])
+  }, [location.key, positionKey])
 
   function changeExpanded(values: string[]) {
     setExpanded(values)
@@ -300,7 +329,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
     const trimmed = target.trim()
     if (!trimmed || trimmed.length > 512) return
     sessionStorage.setItem(
-      `fastdict.position.${location.key}`,
+      `fastdict.position.${positionKey}`,
       JSON.stringify({ scroll: window.scrollY, expanded }),
     )
     suppressFocus.current = true
@@ -320,6 +349,44 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
       suppressFocus.current = false
     })
   }
+  function goToPreviousWord() {
+    if (!previousWord) return
+    navigate(previousWord.url, { replace: true, state: { word_visit_key: previousWord.key } })
+  }
+  function goHome() {
+    suppressFocus.current = true
+    input.current?.blur()
+    setActive(false)
+    setQuery('')
+    navigate('/')
+  }
+  async function openHistoryWord(target: string) {
+    const context = searchContext.current
+    const selection = ++historySelection.current
+    const current = () => selection === historySelection.current && context === searchContext.current
+    const normalized = normalize(target)
+    try {
+      const result = await client.fetchQuery({
+        queryKey: ['suggest', normalized, group, 'headword'],
+        queryFn: ({ signal }) => api<SuggestionResponse>(
+          `/suggest?q=${encodeURIComponent(normalized)}&group=${encodeURIComponent(group)}&mode=headword&limit=30`,
+          { signal },
+        ),
+        staleTime: 30_000,
+      })
+      if (!current()) return
+      const exact = result.items.find(item => item.match_kind === 'exact' && normalize(item.word) === normalized &&
+        item.dictionary_ids.some(id => scopedDictionaries.some(dictionary => dictionary.id === id)))
+      if (exact) openWord(exact.word)
+      else {
+        setMode('headword')
+        setQuery(target)
+        beginSearch()
+      }
+    } catch (error) {
+      if (current()) toast.error(error instanceof Error ? error.message : '搜索失败')
+    }
+  }
   function changeGroup(value: string) {
     setLocalGroup(value)
     sessionStorage.setItem('fastdict.group', value)
@@ -327,7 +394,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
       const search = new URLSearchParams({ group: value })
       navigate(`/word/${encodeURIComponent(word)}?${search}`, {
         replace: true,
-        state: { preserve_search: active },
+        state: { preserve_search: active, word_visit_key: positionKey },
       })
     }
   }
@@ -370,9 +437,56 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
   const historyItems = bootstrap.data?.history ?? []
   const showHistory = !query.trim()
   // Background refreshes retain the matching candidates, including cached empty results.
-  const queryPending = composing || normalize(query) !== suggestionQuery || suggestions.isPending
+  const retainedResults = suggestions.isPlaceholderData && suggestions.data?.retained === true
+  const queryPending = composing || normalize(query) !== suggestionQuery || suggestions.isPending || retainedResults
   const suggestionError = suggestions.data ? null : suggestions.error
   const resultItems = suggestions.data?.items ?? []
+  const selectedValue = showHistory
+    ? (historyItems.some(item => `history-${item.id}` === candidateValue) ? candidateValue : historyItems[0] ? `history-${historyItems[0].id}` : '')
+    : (resultItems.some(item => item.word === candidateValue) ? candidateValue : resultItems[0]?.word ?? '')
+  useLayoutEffect(() => setCandidateValue(''), [query, group, mode])
+  async function submitSearch() {
+    if (composing) return
+    if (showHistory) {
+      const item = historyItems.find(item => `history-${item.id}` === selectedValue) ?? historyItems[0]
+      if (item) await openHistoryWord(item.word)
+      return
+    }
+    const context = searchContext.current
+    const term = normalize(query)
+    if (!term || pendingSubmission.current === context) return
+    pendingSubmission.current = context
+    try {
+      const pending = queryPending || suggestions.isPlaceholderData
+      const result = pending ? await client.fetchQuery({
+        queryKey: ['suggest', term, group, mode],
+        queryFn: ({ signal }) => api<SuggestionResponse>(`/suggest?q=${encodeURIComponent(term)}&group=${encodeURIComponent(group)}&mode=${mode}&limit=30`, { signal }),
+        staleTime: 30_000,
+      }) : suggestions.data
+      if (context !== searchContext.current) return
+      const item = (!pending && result?.items.find(item => item.word === selectedValue)) || result?.items[0]
+      if (item) openWord(item.word)
+    } catch (error) {
+      if (context === searchContext.current) toast.error(error instanceof Error ? error.message : '搜索失败')
+    } finally {
+      if (pendingSubmission.current === context) pendingSubmission.current = null
+    }
+  }
+  const waitingForSuggestions = queryPending || suggestions.isPlaceholderData
+  const candidateScope = JSON.stringify([group, mode])
+  const heldHeight = !showHistory && waitingForSuggestions && candidateHeight.current?.scope === candidateScope
+    ? candidateHeight.current.height : undefined
+  useLayoutEffect(() => {
+    if (!active || !visible) { candidateHeight.current = null; return }
+    if (!showHistory && waitingForSuggestions) return
+    const viewport = candidateArea.current?.querySelector<HTMLElement>('.candidate-list')
+    if (!viewport) return
+    const measure = () => { candidateHeight.current = { scope: candidateScope, height: viewport.getBoundingClientRect().height } }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(viewport)
+    return () => observer.disconnect()
+  }, [active, visible, showHistory, waitingForSuggestions, candidateScope])
   const [showSuggestionLoading, setShowSuggestionLoading] = useState(false)
   useLayoutEffect(() => {
     setShowSuggestionLoading(false)
@@ -401,38 +515,49 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
         data-animated={animated}
         style={{ maxWidth: isEntry && !appearance?.reading_mode ? '100%' : appearance?.content_width ?? 840 }}
         initial={false}
-        animate={{ y: active ? dockOffset : isEntry ? 0 : homeOffset }}
+        animate={{ y: active || isEntry ? offsets.dock : offsets.home }}
         transition={{ duration: animated ? 0.24 : 0, ease: [0.22, 1, 0.36, 1] }}
         aria-label="查词"
       >
         <Command
           shouldFilter={false}
+          value={selectedValue}
+          onValueChange={setCandidateValue}
           loop
           className="search-command h-auto overflow-visible rounded-none bg-transparent"
           onKeyDownCapture={(event) => {
-            if (event.target !== input.current) return
-            if (event.key === 'Enter' && (event.nativeEvent.isComposing || composing)) {
-              event.preventDefault()
+            if (event.target !== input.current || event.key !== 'Enter') return
+            if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || composing) {
               event.stopPropagation()
               return
             }
-            if (
-              event.key === 'Enter' &&
-              query.trim() &&
-              (showHistory ? historyItems.length === 0 : resultItems.length === 0 || queryPending)
-            ) {
-              event.preventDefault()
-              event.stopPropagation()
-              openWord(query)
-            }
+            event.preventDefault()
+            event.stopPropagation()
+            void submitSearch()
           }}
         >
           <div className="search-row">
             {isEntry && (
-              <Button variant="ghost" size="icon" aria-label="返回首页" className="search-back"
-                onClick={() => navigate('/')}>
-                <ArrowLeft className="size-4" />
-              </Button>
+              <div className="search-navigation" role="group" aria-label="词条导航">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="返回上一个词条" className="search-back search-menu-trigger"
+                      disabled={!previousWord} onClick={goToPreviousWord}>
+                      <ArrowLeft className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">返回上一个词条</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="返回首页" className="search-home search-menu-trigger"
+                      onClick={goHome}>
+                      <House className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">返回首页</TooltipContent>
+                </Tooltip>
+              </div>
             )}
             <CommandInput
               ref={input}
@@ -456,6 +581,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
+              enterKeyHint="search"
               className="search-input"
             />
             {query && (
@@ -576,7 +702,8 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
                 </Button>
               </div>
             </div>
-            <ScrollArea viewportClassName="candidate-list">
+            <ScrollArea ref={candidateArea} viewportClassName="candidate-list"
+              style={{ '--candidate-held-height': heldHeight === undefined ? undefined : `${heldHeight}px` } as CSSProperties}>
             <CommandList className="max-h-none overflow-visible" aria-label={showHistory ? '最近查词' : '候选词条'}
               aria-busy={!showHistory && (queryPending || suggestions.isPlaceholderData)}>
               {showHistory &&
@@ -585,7 +712,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
                     key={item.id}
                     value={`history-${item.id}`}
                     className="candidate"
-                    onSelect={() => openWord(item.word)}
+                    onSelect={() => void openHistoryWord(item.word)}
                   >
                     <Clock3 className="size-4 text-muted-foreground" />
                     <span className="candidate-word grow truncate">{item.word}</span>
@@ -613,7 +740,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
                     : '暂无查词历史'}
                 </div>
               )}
-              {!showHistory && queryPending && (
+              {!showHistory && queryPending && resultItems.length === 0 && (
                 <div className="space-y-3 px-4 py-5 min-h-24" role="status" aria-label={showSuggestionLoading ? '正在搜索' : undefined}>
                   {showSuggestionLoading && <>
                     <Skeleton className="h-4 w-2/3" />
@@ -630,14 +757,14 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
                 </div>
               )}
               {!showHistory &&
-                !queryPending &&
                 !suggestionError &&
                 resultItems.map((item) => (
                   <CommandItem
                     key={item.word}
                     value={item.word}
-                    className="candidate"
-                    onSelect={() => openWord(item.word)}
+                    className="candidate data-[disabled=true]:opacity-100"
+                    disabled={queryPending}
+                    onSelect={() => { if (!queryPending) openWord(item.word) }}
                   >
                     <div className="min-w-0 grow">
                       <div className="candidate-word">{item.word}</div>
@@ -656,11 +783,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
                 !suggestionError &&
                 suggestionQuery &&
                 resultItems.length === 0 && (
-                  <div className="candidate-message">
-                    {mode === 'fulltext'
-                      ? '没有匹配内容。检查词典是否已建立全文索引。'
-                      : '没有候选。按回车仍可直接查询。'}
-                  </div>
+                  <div className="candidate-message" role="status">无结果</div>
                 )}
             </CommandList>
             </ScrollArea>
@@ -704,19 +827,7 @@ export default function DictionaryPage({ theme, visible = true }: { theme: 'ligh
             </div>
           )}
           {hits.isSuccess && dictionaries.length === 0 && (
-            <div className="reading-message">
-              <Search className="size-7 text-muted-foreground" strokeWidth={1.3} />
-              <h2>没有找到“{word}”</h2>
-              <p>
-                {scopedDictionaries.length
-                  ? '可以切换分组、修改拼写，或使用全文检索。'
-                  : '当前分组没有启用的词典。前往设置添加或启用词典。'}
-              </p>
-              <Button variant="outline" onClick={beginSearch}>
-                继续搜索
-                <ArrowRight className="size-4" />
-              </Button>
-            </div>
+            <div className="reading-message" role="status">无结果</div>
           )}
           {appearance && (
             <Accordion type="multiple" value={expanded} onValueChange={changeExpanded}>

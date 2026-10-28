@@ -57,7 +57,7 @@ pub fn kind(path: &str) -> String {
         "js" => "js",
         "woff" | "woff2" | "ttf" | "otf" => "font",
         "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "ico" => "image",
-        "mp3" | "wav" | "ogg" | "m4a" => "audio",
+        "mp3" | "wav" | "ogg" | "m4a" | "spx" => "audio",
         _ => "file",
     }
     .into()
@@ -181,6 +181,23 @@ pub fn copy_tree(source: &Path, dest: &Path) -> Result<()> {
         let target = dest.join(&path);
         std::fs::create_dir_all(target.parent().unwrap())?;
         std::fs::copy(source.join(path), target)?;
+    }
+    Ok(())
+}
+
+/// Fork only service-owned immutable revisions or completed upload staging.
+/// New files are added separately;
+/// published files are never overwritten through either hard-link name.
+pub fn clone_revision(source: &Path, dest: &Path) -> Result<()> {
+    let files = list(source)?;
+    std::fs::create_dir_all(dest)?;
+    for file in files {
+        let path = safe_path(&file.path)?;
+        let target = dest.join(&path);
+        std::fs::create_dir_all(target.parent().unwrap())?;
+        if std::fs::hard_link(source.join(&path), &target).is_err() {
+            std::fs::copy(source.join(&path), &target)?;
+        }
     }
     Ok(())
 }

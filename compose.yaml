@@ -1,0 +1,28 @@
+services:
+  fastdict:
+    image: fastdict:${FASTDICT_IMAGE_TAG:-latest}
+    container_name: fastdict
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8765:8765"
+    environment:
+      FASTDICT_TOKEN: ${FASTDICT_TOKEN:?Set FASTDICT_TOKEN in .env}
+      FASTDICT_PUBLIC_ORIGIN: ${FASTDICT_PUBLIC_ORIGIN:?Set FASTDICT_PUBLIC_ORIGIN in .env}
+    volumes:
+      - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,noexec
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'printf "Authorization: Bearer %s\n" "$$FASTDICT_TOKEN" | curl --fail --silent --header @- http://127.0.0.1:8765/api/v1/health > /dev/null'
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3

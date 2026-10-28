@@ -74,12 +74,9 @@ export default function WorkspaceSidebar({ dictionaryUrl, settingsUrl, settingsO
         </Button>
       </aside>
       <DialogPrimitive.Root open={mobileOpen} onOpenChange={setMobileOpen}>
-        <header className="workspace-header">
-          <DialogPrimitive.Trigger asChild>
-            <Button variant="ghost" size="icon" aria-label="打开导航"><Menu className="size-5" /></Button>
-          </DialogPrimitive.Trigger>
-          <span className="font-semibold">fastdict</span>
-        </header>
+        <DialogPrimitive.Trigger asChild>
+          <Button variant="secondary" size="icon" className="workspace-menu-toggle" aria-label="打开导航"><Menu className="size-5" /></Button>
+        </DialogPrimitive.Trigger>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="workspace-drawer-overlay" data-animated={animated} />
           <DialogPrimitive.Content className="workspace-drawer" aria-describedby={undefined} data-animated={animated}>

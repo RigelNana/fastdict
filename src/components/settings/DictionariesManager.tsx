@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, ChevronDown, Upload, FolderSearch, Server } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, apiUpload, type UploadProgress } from '@/lib/api'
 import { useAutosave } from '@/lib/use-autosave'
 import type { Bootstrap, Dictionary, Resource } from '@/lib/types'
 import { DictionaryIcon } from '@/components/EntrySection'
@@ -33,6 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import IndexBadge from './IndexBadge'
 import IndexesPanel from './IndexesPanel'
+import OperationProgress from './OperationProgress'
 const editableDictionary = (dictionary: Dictionary) => ({
   name: dictionary.name.trim(),
   enabled: dictionary.enabled,
@@ -46,6 +47,8 @@ const editableDictionary = (dictionary: Dictionary) => ({
 function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictionary; back: () => void; onIndexes: () => void }) {
   const [manualIcon, setManualIcon] = useState(false)
   const [browsing, setBrowsing] = useState<Resource | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
+  const [uploadDetail, setUploadDetail] = useState('')
   const { pending, error, run } = useAction()
   const base = `/dictionaries/${encodeURIComponent(dictionary.id)}`
   const autosave = useAutosave({
@@ -53,7 +56,11 @@ function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictio
     resource: base,
     project: editableDictionary,
     valid: (value) => !!value.name.trim() && value.resources.every((item) => item.kind === 'mdd' || !!item.key.trim()),
-    save: (value) => api<Dictionary>(base, { method: 'PUT', body: JSON.stringify(editableDictionary(value)) }),
+    save: (value) => {
+      const { resources, ...fields } = editableDictionary(value)
+      const changed = JSON.stringify(resources) !== JSON.stringify(editableDictionary(dictionary).resources)
+      return api<Dictionary>(base, { method: 'PUT', body: JSON.stringify(changed ? { ...fields, resources } : fields) })
+    },
   })
   const { draft, change: setDraft } = autosave
   async function save(patch: Partial<Dictionary>) {
@@ -62,14 +69,23 @@ function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictio
   }
   async function upload(files: FileList | null) {
     const selected = Array.from(files ?? [])
-    if (!selected.length || !(await autosave.flush())) return
+    if (!selected.length || pending) return
+    setUploadDetail(selected.length === 1 ? selected[0].name : `${selected.length} 个文件`)
+    setUploadProgress(null)
     const body = new FormData()
     for (const file of selected) body.append('files', file, file.name)
     const result = await run(
-      () => api<Dictionary>(`${base}/resources`, { method: 'POST', body }),
+      async () => {
+        if (!(await autosave.flush())) throw new Error('请先处理未保存的修改。')
+        const updated = await apiUpload<Dictionary>(`${base}/resources`, body, setUploadProgress)
+        autosave.replace(updated)
+        return updated
+      },
       '资源已添加',
     )
     if (result) autosave.replace(result)
+    setUploadDetail('')
+    setUploadProgress(null)
   }
   const metadata = dictionary.metadata
   const imageOptions = draft.resources
@@ -83,9 +99,9 @@ function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictio
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <DictionaryIcon dictionary={dictionary} />
-          <h3 className="break-words text-xl font-semibold">{dictionary.name}</h3>
+          <h3 className="min-w-0 line-clamp-2 [overflow-wrap:anywhere] text-xl font-semibold" title={dictionary.name}>{dictionary.name}</h3>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span>{dictionary.entries.toLocaleString()} 个词条</span>
@@ -94,6 +110,7 @@ function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictio
           </button>
         </div>
       </div>
+      <fieldset disabled={pending} className="min-w-0">
       <Tabs defaultValue="configuration">
         <TabsList className="mb-5">
           <TabsTrigger value="configuration">配置</TabsTrigger>
@@ -152,6 +169,7 @@ function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictio
             </Field>
           </Section>
           <ResourceManager dictionary={draft} busy={pending || !autosave.valid}
+            progress={pending && uploadDetail ? <OperationProgress label={uploadProgress ? '正在添加资源' : '正在保存设置'} detail={uploadDetail} upload={uploadProgress} /> : undefined}
             onChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
             onUpload={upload} onBrowse={setBrowsing} />
           <Section
@@ -254,6 +272,7 @@ function DictionaryDetails({ dictionary, back, onIndexes }: { dictionary: Dictio
           )}
         </TabsContent>
       </Tabs>
+      </fieldset>
       <ResourceBrowser
         dictionary={dictionary}
         resource={browsing}
@@ -318,7 +337,7 @@ export default function DictionariesManager({
                 >
                   <DictionaryIcon dictionary={item} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate">{item.name}</span>
+                    <span className="block truncate" title={item.name}>{item.name}</span>
                     <span className="mt-1 block text-xs font-normal text-muted-foreground">
                       {item.enabled ? `${item.entries.toLocaleString()} 词条` : '已停用'}
                     </span>
@@ -331,7 +350,7 @@ export default function DictionariesManager({
           <div className="dictionary-detail">
             {dictionary && <DictionaryDetails key={dictionary.id} dictionary={dictionary} back={() => onSelect(null)} onIndexes={() => onTabChange('indexes')} />}
             <div hidden={!!dictionary || selected !== 'import'}>
-              <ImportDictionaries ref={importer} onStart={() => onSelect('import')} />
+              <ImportDictionaries ref={importer} onStart={() => onSelect('import')} onImported={(id) => { if (selected === 'import') onSelect(id) }} />
             </div>
           </div>
         </div>

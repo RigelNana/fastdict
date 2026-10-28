@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { settingsCategories as categories } from '@/lib/settings-navigation'
@@ -7,7 +7,6 @@ import type { Bootstrap, Settings } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { useAutosave } from '@/lib/use-autosave'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import DictionariesManager from '@/components/settings/DictionariesManager'
 import { BackupPanel, LogsPanel } from '@/components/settings/MaintenancePanels'
 import {
@@ -98,6 +97,41 @@ const validSettings = (draft: Settings) =>
     Number.isInteger(draft.performance.query_workers) &&
     draft.performance.query_workers >= 1 &&
     draft.performance.query_workers <= 32
+
+function SettingsLoading({ dictionaries }: { dictionaries: boolean }) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 180)
+    return () => clearTimeout(timer)
+  }, [])
+  return (
+    <div role="status" aria-label="正在读取设置" className="settings-loading"
+      style={{ visibility: visible ? 'visible' : 'hidden' }}>
+      <div aria-hidden className={dictionaries ? 'dictionary-manager' : undefined}>
+        {dictionaries && (
+          <div className="dictionary-list space-y-5">
+            <div className="settings-loading-control" />
+            <div className="settings-loading-label" />
+            <div className="settings-loading-label" />
+          </div>
+        )}
+        <div className={dictionaries ? 'dictionary-detail space-y-7' : 'space-y-7'}>
+          {[0, 1].map((section) => (
+            <div key={section} className="settings-section" >
+              <div className="settings-loading-heading" />
+              {[0, 1, 2].map((row) => (
+                <div key={row} className="settings-field">
+                  <div className="settings-loading-label" />
+                  <div className="settings-loading-control" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function ConfigurationPanel({ data, category }: { data: Bootstrap; category: string }) {
   const { pending, error, run } = useAction()
@@ -325,15 +359,12 @@ export default function SettingsPage() {
   if (location.pathname === '/settings/indexes') return <Navigate to="/settings/dictionaries?tab=indexes" replace />
   return (
     <div className="settings-layout">
-      <main id="settings-content" className={category.id === 'dictionaries' ? 'settings-content settings-content-wide' : 'settings-content'}>
+      <main id="settings-content" aria-busy={data.isPending && !data.data}
+        className={category.id === 'dictionaries' ? 'settings-content settings-content-wide' : 'settings-content'}>
         <h2 className="settings-title">{category.label}</h2>
         {category.id === 'security' && <div className="mb-7"><ConnectionSettings /></div>}
         {data.isPending && !data.data ? (
-          <div className="space-y-5" role="status" aria-label="正在读取设置">
-            <Skeleton className="h-7 w-2/3" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
+          <SettingsLoading dictionaries={category.id === 'dictionaries'} />
         ) : data.data && (
           <>
             {category.id === 'dictionaries' && (

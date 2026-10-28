@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, File, MoreHorizontal, Plus, TextCursorInput, Trash2, Eye } from 'lucide-react'
 import type { Dictionary, Resource, ResourceKind } from '@/lib/types'
 import { moveResourceWithinKind } from '@/lib/resource-order'
@@ -17,13 +17,14 @@ const categories: { kind: ResourceKind; label: string; accept?: string }[] = [
   { kind: 'font', label: '字体', accept: '.woff,.woff2,.ttf,.otf' },
   { kind: 'js', label: 'JS', accept: '.js' },
   { kind: 'image', label: '图片', accept: '.png,.jpg,.jpeg,.gif,.webp,.avif,.bmp,.ico,.svg' },
-  { kind: 'audio', label: '音频', accept: '.mp3,.wav,.ogg,.m4a,.flac,.aac' },
+  { kind: 'audio', label: '音频', accept: '.mp3,.wav,.ogg,.m4a,.flac,.aac,.spx' },
   { kind: 'file', label: '其他' },
 ]
 
-export default function ResourceManager({ dictionary, busy, onChange, onUpload, onBrowse }: {
+export default function ResourceManager({ dictionary, busy, progress, onChange, onUpload, onBrowse }: {
   dictionary: Dictionary
   busy: boolean
+  progress?: ReactNode
   onChange: (patch: Partial<Dictionary>) => void
   onUpload: (files: FileList | null) => Promise<void>
   onBrowse: (resource: Resource) => void
@@ -52,6 +53,7 @@ export default function ResourceManager({ dictionary, busy, onChange, onUpload, 
             <Plus size={16} />添加{category.label === '其他' ? '文件' : fileLabel.trimEnd()}
           </Button>
         </div>
+        {progress}
         <input ref={upload} hidden type="file" multiple accept={category.accept} aria-label={`上传 ${category.label} 文件`}
           onChange={(event) => { void onUpload(event.target.files); event.target.value = '' }} />
         <TabsContent value={kind} className="space-y-5">

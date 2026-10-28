@@ -177,12 +177,31 @@ html::-webkit-scrollbar { display: none; }
   bottom: 0;
   z-index: 45;
   width: 12px;
-  padding-inline: 3px;
+  contain: strict;
+  isolation: isolate;
+  background: var(--background);
   touch-action: none;
   user-select: none;
   visibility: hidden;
 }
 .window-scrollbar[data-visible='true'] { visibility: visible; }
+.window-scrollbar-visual {
+  position: absolute;
+  inset: 0;
+  contain: strict;
+  background: var(--background);
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+  will-change: opacity;
+}
+.window-scrollbar-thumb { position: absolute; left: 3px; right: 3px; top: 0; }
+.window-scrollbar[data-active='true'] .window-scrollbar-visual,
+.window-scrollbar[data-dragging='true'] .window-scrollbar-visual,
+.window-scrollbar:focus-within .window-scrollbar-visual { opacity: 1; }
+.window-scrollbar[data-dragging='true'] .window-scrollbar-visual { transition: none; }
+@media (hover: hover) {
+  .window-scrollbar:hover .window-scrollbar-visual { opacity: 1; }
+}
 .window-scrollbar-thumb,
 .scroll-area-thumb {
   border-radius: 999px;
@@ -195,12 +214,24 @@ html::-webkit-scrollbar { display: none; }
 }
 .window-scrollbar-thumb:focus-visible { outline: 1px solid var(--ring); outline-offset: 2px; }
 .scroll-area-viewport { max-height: inherit; }
+/* This component scrolls vertically. Radix's intrinsic table wrapper lets
+   unbroken dictionary names expand beyond the viewport before truncation. */
+.scroll-area-viewport > div { display: block !important; }
 .scroll-area-track { display: flex; width: 10px; padding: 2px; touch-action: none; user-select: none; }
+.scroll-area-track[data-state='visible'] { animation: scrollbar-show 150ms ease-out; }
+.scroll-area-track[data-state='hidden'] { animation: scrollbar-hide 150ms ease-out; }
+@keyframes scrollbar-show { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scrollbar-hide { from { opacity: 1; } to { opacity: 0; } }
+.workspace-shell[data-animated='false'] .window-scrollbar-visual { transition: none; }
+.workspace-shell[data-animated='false'] .scroll-area-track { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .window-scrollbar-visual { transition: none; }
+  .scroll-area-track { animation: none; }
+}
 .scroll-area-thumb { position: relative; flex: 1; }
 .resource-tabs [data-slot='tabs-trigger']:focus-visible { box-shadow: none; outline: 1px solid var(--ring); outline-offset: 2px; }
 
 .dictionary-app {
-  --entry-gutter: 32px;
   min-height: calc(100dvh - var(--workspace-header-height, 0px));
 }
 .app-header {
@@ -255,15 +286,16 @@ html::-webkit-scrollbar { display: none; }
   min-height: 44px;
 }
 
-.search-space { height: 96px; }
+.search-space { height: 28px; }
 .search-positioner {
   position: fixed;
   inset-inline: var(--workspace-sidebar-width, 0px) 0;
-  top: var(--workspace-header-height, 0px);
+  top: 0;
   width: calc(100% - var(--workspace-sidebar-width, 0px));
   margin: 0 auto;
   padding: 20px 24px calc(20px + env(safe-area-inset-bottom));
-  background: var(--background);
+  background: transparent;
+  pointer-events: none;
   z-index: 30;
   /* Resize only this fixed shell so text and the native caret are never scaled. */
   transition:
@@ -284,6 +316,7 @@ html::-webkit-scrollbar { display: none; }
   flex-direction: column;
 }
 .search-row {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   min-height: 52px;
@@ -359,6 +392,7 @@ html::-webkit-scrollbar { display: none; }
   line-height: 1.8;
 }
 .suggestion-panel {
+  pointer-events: auto;
   position: absolute;
   inset-inline: 24px;
   bottom: calc(100% - 12px);
@@ -378,7 +412,9 @@ html::-webkit-scrollbar { display: none; }
   font-size: 12px;
 }
 .candidate-list {
-  max-height: min(430px, max(120px, calc(var(--visual-height, 100dvh) - 240px)));
+  --candidate-max-height: min(430px, max(80px, calc(var(--visual-height, 100dvh) - var(--search-height, 92px) - 88px)));
+  max-height: var(--candidate-max-height);
+  min-height: min(var(--candidate-held-height, 0px), var(--candidate-max-height));
   scroll-padding: 8px;
   padding: 2px;
 }
@@ -418,7 +454,7 @@ html::-webkit-scrollbar { display: none; }
 .entry-content {
   width: 100%;
   margin: 4px 0 0;
-  padding: 0 var(--entry-gutter) 72px;
+  padding: 0 var(--entry-gutter) calc(var(--search-height, 92px) + 24px);
 }
 .reading-mode .entry-content { margin-inline: auto; }
 .dictionary-section {
@@ -431,11 +467,16 @@ html::-webkit-scrollbar { display: none; }
   align-items: center;
   gap: 20px;
   min-height: 56px;
-  padding: 14px 0;
+  padding: 14px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--foreground) 7%, var(--background));
   font-size: 13px;
   font-weight: 550;
-  color: var(--muted-foreground);
+  color: var(--foreground);
   letter-spacing: 0.005em;
+}
+.dictionary-heading:hover {
+  background: color-mix(in srgb, var(--foreground) 11%, var(--background));
 }
 .dictionary-heading > svg {
   width: 15px;
@@ -466,6 +507,32 @@ html::-webkit-scrollbar { display: none; }
   color-scheme: light;
   overflow: hidden;
 }
+.article-stage { position: relative; }
+.article-stage[data-ready='false'] .article-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.article-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 120px;
+  padding-block: 16px;
+}
+.article-loading > span {
+  width: 80%;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--muted);
+  opacity: 0;
+  animation: article-loading-show 0s 180ms forwards;
+}
+.article-loading > span:nth-child(2) { width: 100%; }
+.article-loading > span:nth-child(3) { width: 60%; }
+@keyframes article-loading-show { to { opacity: 1; } }
 .reading-message {
   display: flex;
   flex-direction: column;
@@ -573,6 +640,7 @@ html::-webkit-scrollbar { display: none; }
 
 /* One persistent navigation drawer for search and settings. */
 .workspace-shell {
+  --entry-gutter: 32px;
   --workspace-sidebar-width: 208px;
   --workspace-header-height: 0px;
   min-height: 100dvh;
@@ -627,7 +695,7 @@ html::-webkit-scrollbar { display: none; }
 .workspace-sidebar-toggle { justify-content: flex-start; margin: 12px 10px; padding-inline: 12px; min-height: 42px; gap: 10px; color: var(--muted-foreground); }
 /* Keep the icon rail fixed while the drawer narrows; centering here makes icons jump right first. */
 .workspace-sidebar[data-collapsed='true'] .workspace-navigation-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.workspace-header { display: none; }
+.workspace-menu-toggle { display: none; }
 .workspace-drawer-overlay { position: fixed; inset: 0; z-index: 50; background: rgb(0 0 0 / 40%); }
 .workspace-drawer { position: fixed; inset-block: 0; left: 0; z-index: 51; display: flex; flex-direction: column; width: min(272px, 85vw); background: var(--background); outline: none; }
 .workspace-drawer-overlay[data-state='open'] { animation: drawer-fade-in 160ms ease-out; }
@@ -645,6 +713,14 @@ html::-webkit-scrollbar { display: none; }
 .settings-content { min-width: 0; width: 100%; max-width: 840px; padding: 32px 40px 64px; }
 .settings-content-wide { max-width: none; }
 .settings-title { font-size: 24px; font-weight: 600; margin-bottom: 28px; letter-spacing: -0.02em; }
+.settings-loading-heading, .settings-loading-label, .settings-loading-control { background: var(--muted); border-radius: 6px; }
+.settings-loading-heading { width: 112px; height: 22px; }
+.settings-loading-label { width: 80px; height: 14px; }
+.settings-loading-control { width: 100%; height: 36px; border-radius: 8px; }
+.operation-progress-indeterminate { animation: operation-progress 1.2s ease-in-out infinite; }
+@keyframes operation-progress { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+.workspace-shell[data-animated='false'] .operation-progress-indeterminate { animation: none; }
+@media (prefers-reduced-motion: reduce) { .operation-progress-indeterminate { animation: none; } }
 .settings-section-title { font-size: 18px; line-height: 1.4; font-weight: 600; letter-spacing: -0.01em; }
 .settings-section { display: flex; flex-direction: column; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
 .settings-section:last-child { border-bottom: 0; }
@@ -656,26 +732,32 @@ html::-webkit-scrollbar { display: none; }
 .dictionary-list-items { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; }
 .dictionary-list-item { width: 100%; height: auto; min-height: 60px; gap: 10px; padding: 10px; text-align: left; justify-content: flex-start; }
 .dictionary-detail { min-width: 0; max-width: 760px; }
+.group-member { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px; border-radius: 8px; background: var(--background); }
+.group-member:hover, .group-member[data-dragging='true'] { background: var(--muted); }
+.group-member[data-dragging='true'] { z-index: 1; }
+.group-member-menu { width: 340px; max-width: calc(100vw - 32px); }
+.group-sort-rule { display: grid; grid-template-columns: minmax(0, 1fr) 100px auto; align-items: center; gap: 8px; }
 @media (max-width: 1100px) {
   .settings-content { padding-inline: 28px; }
   .dictionary-manager { grid-template-columns: 180px minmax(0,1fr); gap: 24px; }
   .dictionary-detail .settings-field { grid-template-columns: 1fr; gap: 8px; }
 }
 @media (max-width: 760px) {
-  .dictionary-app { --entry-gutter: 20px; }
-  .workspace-shell, .workspace-shell[data-sidebar-collapsed='true'] { --workspace-sidebar-width: 0px; --workspace-header-height: 60px; }
+  .workspace-shell { --entry-gutter: 20px; }
+  .workspace-shell, .workspace-shell[data-sidebar-collapsed='true'] { --workspace-sidebar-width: 0px; }
   .workspace-sidebar { display: none; }
-  .workspace-header { position: fixed; inset-inline: 0; top: 0; z-index: 40; display: flex; align-items: center; gap: 8px; height: 60px; padding-inline: 12px; border-bottom: 1px solid var(--border); background: var(--background); }
+  .workspace-menu-toggle { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: var(--entry-gutter); z-index: 40; display: inline-flex; width: 44px; height: 44px; border-radius: 10px; }
+  .search-space { height: calc(72px + env(safe-area-inset-top)); }
   .workspace-drawer .workspace-navigation-link { min-height: 44px; }
-  .settings-content { padding: 26px 24px 48px; }
+  .settings-content { padding: calc(76px + env(safe-area-inset-top)) 24px 48px; }
   .settings-field { grid-template-columns: 1fr; gap: 8px; }
   .dictionary-manager { grid-template-columns: 1fr; gap: 24px; }
   .dictionary-list { border-right: 0; padding-right: 0; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
   .dictionary-list-scroll { max-height: 200px; }
 }
 @media (max-width: 480px) {
-  .dictionary-app { --entry-gutter: 16px; }
-  .settings-content { padding: 22px 16px 40px; }
+  .workspace-shell { --entry-gutter: 16px; }
+  .settings-content { padding-inline: 16px; padding-bottom: 40px; }
   .settings-title { font-size: 22px; margin-bottom: 24px; }
   .settings-section { gap: 18px; }
   }
@@ -687,15 +769,17 @@ html::-webkit-scrollbar { display: none; }
 @media (max-width: 480px) { .entry-view .app-header { top: 60px; } }
 .settings-field.settings-toggle { grid-template-columns: minmax(0,1fr) auto; }
 
-.search-back { flex-shrink: 0; width: 36px; }
+.search-navigation { display: flex; flex-shrink: 0; align-items: center; gap: 2px; }
+.search-back, .search-home { flex-shrink: 0; width: 36px; }
 .search-positioner[data-entry='true'] [data-slot='command-input-wrapper'] > svg { display: none; }
 
 .search-positioner .search-row > [data-slot='button'] { flex-shrink: 0; }
 @media (max-width: 640px) {
-  .search-space { height: 88px; }
   .search-positioner { padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
   .suggestion-panel { inset-inline: 16px; bottom: calc(100% - 8px); }
   .search-positioner .search-row { gap: 2px; padding: 3px 4px; }
+  .search-navigation { gap: 0; }
+  .search-navigation .search-back, .search-navigation .search-home { width: 44px; height: 44px; }
   .search-positioner .search-group { width: 92px; min-width: 72px; max-width: 92px; padding-inline: 6px; }
   .search-positioner[data-entry='true'] [data-slot='command-input-wrapper'] { padding-inline: 4px; }
   .search-positioner .search-clear { width: 32px; min-width: 32px; }

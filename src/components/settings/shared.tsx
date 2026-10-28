@@ -31,12 +31,12 @@ export function useAction() {
   const client = useQueryClient()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
-  async function run<T>(action: () => Promise<T>, message = '已保存'): Promise<T | undefined> {
+  async function run<T>(action: () => Promise<T>, message = '已保存', options: { refresh?: boolean } = {}): Promise<T | undefined> {
     setPending(true)
     setError('')
     try {
       const value = await action()
-      await client.invalidateQueries({ queryKey: ['bootstrap'] })
+      if (options.refresh !== false) await client.invalidateQueries({ queryKey: ['bootstrap'] })
       if (message) toast.success(message)
       return value
     } catch (cause) {

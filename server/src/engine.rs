@@ -7,6 +7,7 @@
 
 use std::collections::BTreeMap;
 use std::path::{Component, Path};
+use std::sync::Arc;
 
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
@@ -37,7 +38,9 @@ pub struct EngineArticle {
 }
 
 pub struct Engine {
-    dictionary: Mdx,
+    dictionary: Arc<Mdx>,
+    source: std::path::PathBuf,
+    dictionary_budget: usize,
     resources: Resources,
 }
 
@@ -47,8 +50,8 @@ impl Engine {
     /// The root and all source bindings must remain immutable for this engine's
     /// lifetime. Containment is checked before mapping, and resource volumes are
     /// checked again at their independent lazy-open boundary. The cache budget
-    /// is divided between the MDX and every explicitly mounted MDD, so their sum
-    /// cannot exceed `cache_bytes`. Caller-retained byte views are not included.
+    /// reserves half for MDX; mounted MDDs share the remainder. Rebinding can
+    /// reuse MDX within the same total budget. Caller-retained views are excluded.
     pub fn open(
         mdx_path: &Path,
         root: &Path,
@@ -78,29 +81,53 @@ impl Engine {
             source.starts_with(&root) && source.is_file(),
             "词典文件必须位于托管目录内"
         );
-        let volume_count = mounts
-            .iter()
-            .filter(|mount| {
-                mount
-                    .path
-                    .extension()
-                    .and_then(|extension| extension.to_str())
-                    .is_some_and(|extension| extension.eq_ignore_ascii_case("mdd"))
-            })
-            .count();
         let mut limits = Limits::default();
-        limits.cache = cache_bytes / volume_count.saturating_add(1);
+        limits.cache = cache_bytes / 2;
         // SAFETY: The service owns immutable revision files and never rewrites
         // published paths; the checked canonical source belongs to that revision.
         let reader = unsafe { Reader::open_with(&source, limits) }.context("无法解析 MDX 词典")?;
-        let dictionary = Mdx::new(reader).context("无法建立词头索引")?;
+        let dictionary = Arc::new(Mdx::new(reader).context("无法建立词头索引")?);
         // SAFETY: The same managed immutable revision contract covers each mount,
         // including paths opened lazily. Resources validates root containment.
-        let resources = unsafe { Resources::mount_with(&root, mounts, limits) }
-            .context("无效的词典资源绑定")?;
+        let resources = Self::mount_resources(&root, mounts, cache_bytes - limits.cache)?;
         Ok(Self {
             dictionary,
+            source,
+            dictionary_budget: limits.cache,
             resources,
+        })
+    }
+
+    fn mount_resources(root: &Path, mounts: &[ResourceMount], budget: usize) -> Result<Resources> {
+        let volumes = mounts.iter().filter(|mount| mount.path.extension()
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("mdd"))).count();
+        let mut limits = Limits::default();
+        limits.cache = budget / volumes.max(1);
+        // SAFETY: mounts are explicit paths in immutable managed revisions;
+        // Resources validates containment again when a volume opens lazily.
+        unsafe { Resources::mount_with(root, mounts, limits) }.context("无效的词典资源绑定")
+    }
+
+    pub fn shares_source(&self, source: &Path, cache_bytes: usize) -> bool {
+        if self.dictionary_budget > cache_bytes / 2 { return false; }
+        if self.source == source { return true; }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            if let (Ok(old), Ok(new)) = (std::fs::metadata(&self.source), std::fs::metadata(source)) {
+                return old.dev() == new.dev() && old.ino() == new.ino();
+            }
+        }
+        false
+    }
+
+    pub fn with_resources(&self, root: &Path, mounts: &[ResourceMount], cache_bytes: usize) -> Result<Self> {
+        ensure!(self.dictionary_budget <= cache_bytes / 2, "Dictionary cache budget changed");
+        Ok(Self {
+            dictionary: self.dictionary.clone(),
+            source: self.source.clone(),
+            dictionary_budget: self.dictionary_budget,
+            resources: Self::mount_resources(root, mounts, cache_bytes - self.dictionary_budget)?,
         })
     }
 
@@ -188,6 +215,27 @@ impl Engine {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg(unix)]
+    fn resource_revision_reuses_mdx_without_mutating_previous_files() {
+        let old = tempfile::tempdir().unwrap();
+        let next = tempfile::tempdir().unwrap();
+        std::fs::write(old.path().join("test.mdx"), include_bytes!("../../vendor/wodix/crates/wodix/tests/data/basic.mdx")).unwrap();
+        let engine = Engine::open(Path::new("test.mdx"), old.path(), &[], 1024).unwrap();
+        crate::imports::clone_revision(old.path(), next.path()).unwrap();
+        std::fs::write(next.path().join("style.css"), "p { color: inherit; }").unwrap();
+        assert!(engine.shares_source(&next.path().join("test.mdx"), 1024));
+        assert!(!engine.shares_source(&next.path().join("test.mdx"), 0));
+        let rebound = engine.with_resources(next.path(), &[ResourceMount { path: "style.css".into(), key: "style.css".into() }], 1024).unwrap();
+        assert!(Arc::ptr_eq(&engine.dictionary, &rebound.dictionary));
+        assert_eq!(rebound.lookup("apple").unwrap()[0].html, engine.lookup("apple").unwrap()[0].html);
+        assert_eq!(rebound.resource("style.css").unwrap().as_ref(), b"p { color: inherit; }");
+        assert!(engine.resource("style.css").is_err());
+        let unrelated = tempfile::tempdir().unwrap();
+        std::fs::copy(next.path().join("test.mdx"), unrelated.path().join("test.mdx")).unwrap();
+        assert!(!engine.shares_source(&unrelated.path().join("test.mdx"), 1024));
+    }
 
     #[test]
     fn engine_uses_real_sources_and_respects_zero_cache_budget() {

@@ -85,6 +85,10 @@ pub struct Job {
     pub progress: usize,
     pub total: usize,
     pub error: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Snapshot {

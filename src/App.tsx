@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
@@ -8,7 +8,8 @@ import WindowScrollbar from '@/components/WindowScrollbar'
 import WorkspaceSidebar from '@/components/WorkspaceSidebar'
 import { useBootstrap } from '@/lib/api'
 import DictionaryPage from '@/pages/DictionaryPage'
-const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
+import SettingsPage from '@/pages/SettingsPage'
+import darkreaderUrl from 'darkreader/darkreader.js?url'
 
 export function useResolvedTheme(theme: 'light' | 'dark' | 'system' = 'system') {
   const [systemDark, setSystemDark] = useState(
@@ -68,6 +69,15 @@ export default function App() {
   const theme = useResolvedTheme(bootstrap.data?.settings.appearance.theme)
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
+    // Start the shared runtime alongside lookup, before any article iframe exists.
+    if (theme === 'dark' && !document.getElementById('article-theme-preload')) {
+      const preload = document.createElement('link')
+      preload.id = 'article-theme-preload'
+      preload.rel = 'preload'
+      preload.as = 'script'
+      preload.href = darkreaderUrl
+      document.head.append(preload)
+    }
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', theme === 'dark' ? '#09090b' : '#ffffff')
@@ -97,17 +107,9 @@ export default function App() {
       </div>
       <div hidden={!settingsOpen} inert={!settingsOpen}>
       {settingsVisited.current && (
-            <Suspense
-              fallback={
-                <div className="px-6 py-16 text-sm text-muted-foreground" role="status">
-                  正在打开设置…
-                </div>
-              }
-            >
-              <Routes location={settingsLocation.current}>
-                <Route path="/settings/*" element={<SettingsPage />} />
-              </Routes>
-            </Suspense>
+        <Routes location={settingsLocation.current}>
+          <Route path="/settings/*" element={<SettingsPage />} />
+        </Routes>
       )}
       </div>
       </div>

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { QueryClient, QueryObserver } from '@tanstack/react-query'
-import { matchingHeadwords, normalizeHeadword } from '../src/lib/suggestion-cache.ts'
+import { matchingHeadwords, normalizeHeadword, pendingSuggestions } from '../src/lib/suggestion-cache.ts'
 
 const key = (q, group = 'all', mode = 'headword') => ['suggest', q, group, mode]
 const response = (...words) => ({
@@ -70,6 +70,67 @@ test('rapid typing cancels obsolete requests, preserves valid candidates, and re
     assert.equal(observer.getCurrentResult().isFetching, false)
     assert.equal(observer.getCurrentResult().data, initial)
     assert.equal(calls, 2)
+  } finally {
+    unsubscribe()
+    client.clear()
+  }
+})
+
+test('an unmatched next input retains display rows but never treats them as current matches', () => {
+  const previous = response('apple', 'apricot')
+  const retained = pendingSuggestions(previous, key('a'), key('banana'))
+  assert.equal(retained.retained, true)
+  assert.deepEqual(retained.items, previous.items)
+  assert.equal(pendingSuggestions(previous, key('a'), key('apple')).retained, false)
+  assert.equal(previous.retained, undefined)
+  assert.equal(pendingSuggestions(previous, key('a'), key('b', 'other')), undefined)
+  assert.equal(pendingSuggestions(previous, key('a'), key('b', 'all', 'fulltext')), undefined)
+  assert.equal(pendingSuggestions(previous, key('a'), key('')), undefined)
+  assert.equal(pendingSuggestions(response(), key('a'), key('b')), undefined)
+  assert.equal(pendingSuggestions(previous, key('a', 'all', 'fulltext'), key('b', 'all', 'fulltext')).retained, true)
+})
+
+test('retained rows survive rapid unmatched requests, then yield to actual empty results or errors', async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30000 } } })
+  const initial = response('apple', 'apricot')
+  client.setQueryData(key('a'), initial)
+  const old = deferred()
+  const latest = deferred()
+  let aborted = false
+  const options = (q, queryFn) => ({
+    queryKey: key(q), queryFn,
+    placeholderData: (data, previous) => pendingSuggestions(data, previous?.queryKey, key(q)),
+  })
+  const observer = new QueryObserver(client, options('a', async () => initial))
+  const unsubscribe = observer.subscribe(() => {})
+  try {
+    observer.setOptions(options('b', ({ signal }) => {
+      signal.addEventListener('abort', () => { aborted = true })
+      return old.promise
+    }))
+    assert.equal(observer.getCurrentResult().isPlaceholderData, true)
+    assert.equal(observer.getCurrentResult().data.retained, true)
+    assert.equal(client.getQueryData(key('b')), undefined)
+
+    observer.setOptions(options('bx', () => latest.promise))
+    assert.equal(aborted, true)
+    assert.deepEqual(observer.getCurrentResult().data.items, initial.items)
+    const finished = observer.refetch()
+    latest.resolve(response())
+    await finished
+    old.resolve(response('banana'))
+    await old.promise
+    assert.equal(observer.getCurrentResult().isPlaceholderData, false)
+    assert.deepEqual(observer.getCurrentResult().data.items, [])
+    assert.equal(client.getQueryData(key('bx')).retained, undefined)
+
+    observer.setOptions(options('a', async () => initial))
+    assert.equal(observer.getCurrentResult().data, initial)
+    observer.setOptions(options('offline', async () => { throw new Error('offline') }))
+    assert.equal(observer.getCurrentResult().data.retained, true)
+    const failed = await observer.refetch()
+    assert.equal(failed.isError, true)
+    assert.equal(failed.data, undefined, 'a failed request must not leave old rows looking like valid results')
   } finally {
     unsubscribe()
     client.clear()

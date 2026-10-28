@@ -11,7 +11,7 @@ import IndexBadge from './IndexBadge'
 import { Confirm, Empty, ErrorNotice, Section, bytes, useAction } from './shared'
 
 const jobLabels = { queued: '等待中', running: '进行中', done: '已完成', error: '失败' }
-const jobKinds: Record<string, string> = { fulltext: '全文索引', headwords: '词头目录', cache: '缓存' }
+const jobKinds: Record<string, string> = { fulltext: '全文索引', headwords: '词头目录', cache: '缓存', import: '导入词典' }
 
 export default function IndexesPanel({ data }: { data: Bootstrap }) {
   const { pending, error, run } = useAction()
@@ -38,8 +38,8 @@ export default function IndexesPanel({ data }: { data: Bootstrap }) {
             return (
               <li key={dictionary.id} className="space-y-3 py-4 first:pt-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="break-words text-sm font-medium">{dictionary.name}</span>
+                  <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+                    <span className="min-w-0 [overflow-wrap:anywhere] text-sm font-medium">{dictionary.name}</span>
                     <IndexBadge status={status} />
                   </div>
                   <div className="flex items-center gap-1">

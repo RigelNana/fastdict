@@ -44,3 +44,5 @@ cargo test --locked -p fastdict
 ```
 
 内置解析库位于 `vendor/wodix`，随仓库提供源代码，无需初始化子模块；来源和许可证见 [依赖说明](vendor/README.md)。
+
+服务器部署参见 [Docker 部署说明](docs/DEPLOYMENT.md)。

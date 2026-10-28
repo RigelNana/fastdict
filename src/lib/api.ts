@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Bootstrap, Connection } from './types'
+import { uploadChunks, type TransferProgress } from './chunk-upload'
 
 export class ApiError extends Error {
   constructor(
@@ -93,6 +94,56 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function apiBlob(path: string, init?: RequestInit): Promise<Blob> {
   return (await request(path, init)).blob()
+}
+
+export type UploadProgress = TransferProgress
+
+export function apiUpload<T>(path: string, body: FormData, onProgress: (progress: UploadProgress) => void): Promise<T> {
+  const files = body.getAll('files').filter((entry): entry is File => entry instanceof File)
+  const resourceTarget = path.match(/^\/dictionaries\/([^/]+)\/resources$/)?.[1]
+  const chunked = (path === '/imports' || resourceTarget) && files.reduce((sum, file) => sum + file.size, 0) > 16 * 1024 ** 2
+  if (chunked) return uploadChunks<T>(files, {
+    create: files => api('/uploads', { method: 'POST', body: JSON.stringify({
+      kind: resourceTarget ? 'resources' : 'import', dictionary_id: resourceTarget ?? null, files,
+    }) }),
+    write: (id, index, offset, bytes, progress) => xhrUpload(`/uploads/${encodeURIComponent(id)}/files/${index}?offset=${offset}`, bytes, state => progress(state.loaded), 'PUT'),
+    complete: id => api<T>(`/uploads/${encodeURIComponent(id)}/complete`, { method: 'POST' }),
+    discard: id => api(`/uploads/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  }, onProgress)
+  return xhrUpload(path, body, onProgress)
+}
+
+function xhrUpload<T>(path: string, body: FormData | Blob, onProgress: (progress: UploadProgress) => void, method = 'POST'): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    const { token } = getConnection()
+    xhr.open(method, apiUrl(path))
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    if (body instanceof Blob) {
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+      xhr.timeout = 300_000
+    }
+    let progress: UploadProgress = { phase: 'uploading', loaded: 0, total: 0 }
+    onProgress(progress)
+    xhr.upload.onprogress = (event) => {
+      progress = { phase: 'uploading', loaded: event.loaded, total: event.lengthComputable ? event.total : 0 }
+      onProgress(progress)
+    }
+    xhr.upload.onload = () => onProgress({ ...progress, phase: 'processing' })
+    xhr.onerror = () => reject(new ApiError('上传连接中断，请重试。', 0, 'unavailable'))
+    xhr.ontimeout = () => reject(new ApiError('上传连接超时，请重试。', 0, 'unavailable'))
+    xhr.onabort = () => reject(new DOMException('上传已取消', 'AbortError'))
+    xhr.onload = () => {
+      let data: { error?: { message?: string; code?: string } } | undefined
+      try { data = JSON.parse(xhr.responseText) } catch { /* A proxy may return HTML. */ }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new ApiError(data?.error?.message ?? (xhr.status === 413 ? '文件超过服务允许的上传大小。' : `上传失败（${xhr.status}）。`), xhr.status, data?.error?.code ?? 'upload_failed'))
+      } else if (data === undefined) {
+        reject(new ApiError('服务返回了无效的上传结果。', xhr.status, 'invalid_response'))
+      } else resolve(data as T)
+    }
+    xhr.send(body)
+  })
 }
 
 export function useBootstrap() {

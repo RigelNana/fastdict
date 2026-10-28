@@ -569,6 +569,45 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7360491ce676a36bf9bb3c56c1aa791658183a54d2744120f27285738d90465a"
 
 [[package]]
+name = "fastdict"
+version = "0.1.0"
+dependencies = [
+ "adler",
+ "ammonia",
+ "anyhow",
+ "axum",
+ "blake3",
+ "cap-std",
+ "chrono",
+ "clap",
+ "cssparser 0.35.0",
+ "flate2",
+ "fst",
+ "html-escape",
+ "lol_html",
+ "lru",
+ "memmap2",
+ "mime_guess",
+ "percent-encoding",
+ "reqwest",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "unicode-normalization",
+ "url",
+ "uuid",
+ "walkdir",
+ "wodix",
+ "zip",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1321,45 +1360,6 @@ dependencies = [
  "mime",
  "spin",
  "version_check",
-]
-
-[[package]]
-name = "fastdict"
-version = "0.1.0"
-dependencies = [
- "adler",
- "ammonia",
- "anyhow",
- "axum",
- "blake3",
- "cap-std",
- "chrono",
- "clap",
- "cssparser 0.35.0",
- "flate2",
- "fst",
- "html-escape",
- "lol_html",
- "lru",
- "memmap2",
- "mime_guess",
- "percent-encoding",
- "reqwest",
- "rusqlite",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tokio-util",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "unicode-normalization",
- "url",
- "uuid",
- "walkdir",
- "wodix",
- "zip",
 ]
 
 [[package]]

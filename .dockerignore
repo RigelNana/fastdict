@@ -1,0 +1,7 @@
+**
+!Dockerfile
+!dist/
+!dist/**
+!target/
+!target/release/
+!target/release/fastdict

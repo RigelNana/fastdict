@@ -77,7 +77,7 @@ test('isolated article clears selection only for its parent and reports pointer 
     parent, document: { getElementById: () => root, addEventListener: on },
     addEventListener: on, ResizeObserver: class { observe() {} },
     requestAnimationFrame: callback => callback(), getSelection: () => ({ removeAllRanges: () => cleared++ }),
-    URL, scrollY: 0,
+    URL, scrollY: 0, setTimeout, clearTimeout,
   })
   listeners.get('message')({ source: {}, data: { type: 'fastdict:clear-selection' } })
   assert.equal(cleared, 0)
@@ -106,7 +106,7 @@ test('article theme switches through the trusted bridge without overriding sourc
   const on = (name, callback) => listeners.set(name, callback)
   vm.runInNewContext(bridge, {
     parent, DarkReader, document: { getElementById: () => root, addEventListener: on, body, documentElement },
-    addEventListener: on, ResizeObserver: class { observe() {} }, requestAnimationFrame: callback => callback(), URL, scrollY: 0,
+    addEventListener: on, ResizeObserver: class { observe() {} }, requestAnimationFrame: callback => callback(), URL, scrollY: 0, setTimeout, clearTimeout,
   })
   const send = (theme, source = parent) => listeners.get('message')({ source, data: { type: 'fastdict:style', theme } })
   send('dark', {})

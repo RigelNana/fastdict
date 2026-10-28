@@ -3,6 +3,7 @@ dist/
 target/
 .mydict/
 .fastdict/
+/data/
 *.tsbuildinfo
 .env
 .env.*

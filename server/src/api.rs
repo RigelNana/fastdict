@@ -1,10 +1,12 @@
 use crate::{
+    audio::{self, AudioCache},
     engine::{Engine, ResourceMount},
     imports::{self, Candidate, ImportPreview},
     model::*,
     render::{self, RenderOptions},
     search::{self, Catalog},
     store::Store,
+    uploads,
 };
 use anyhow::{Context, bail};
 use axum::{
@@ -57,6 +59,9 @@ struct App {
     jobs: Mutex<Vec<Job>>,
     caps: Mutex<HashMap<String, Capability>>,
     mutation: tokio::sync::Mutex<()>,
+    upload_files: Mutex<()>,
+    upload_completion: tokio::sync::Mutex<()>,
+    audio: Mutex<AudioCache>,
 }
 type Shared = Arc<App>;
 #[derive(Debug)]
@@ -161,11 +166,20 @@ impl App {
                 key: r.key.clone(),
             })
             .collect::<Vec<_>>();
-        let engine = Arc::new(Engine::open(&root.join(&d.mdx), &root, &mounts, cache)?);
+        let previous = self.readers.lock().unwrap().iter().rev()
+            .filter(|(key, _)| key.starts_with(&format!("{}:", d.id)))
+            .map(|(_, engine)| engine.clone()).collect::<Vec<_>>();
+        let source = root.join(&d.mdx);
+        let engine = Arc::new(if let Some(previous) = previous.iter().find(|engine| engine.shares_source(&source, cache)) {
+            previous.with_resources(&root, &mounts, cache)?
+        } else {
+            Engine::open(&source, &root, &mounts, cache)?
+        });
         let mut readers = self.readers.lock().unwrap();
         if self.reader_generation.load(Ordering::Acquire) != generation {
             return Ok(engine);
         }
+        readers.retain(|(key, _)| !key.starts_with(&format!("{}:", d.id)));
         while readers.len() >= max {
             readers.pop_front();
         }
@@ -421,6 +435,9 @@ pub async fn serve(mut config: ServeConfig) -> anyhow::Result<()> {
         store,
         catalog: RwLock::new(Arc::new(catalog)),
         catalog_publication: Mutex::new(()),
+        upload_files: Mutex::new(()),
+        upload_completion: tokio::sync::Mutex::new(()),
+        audio: Mutex::new(AudioCache::default()),
         readers: Mutex::new(VecDeque::new()),
         reader_generation: AtomicU64::new(0),
         open_gates: Mutex::new(HashMap::new()),
@@ -445,8 +462,13 @@ pub async fn serve(mut config: ServeConfig) -> anyhow::Result<()> {
         .route("/history", post(history_add).delete(history_clear))
         .route("/history/{id}", delete(history_remove))
         .route("/imports", post(import_upload))
+        .route("/uploads", post(upload_create))
+        .route("/uploads/{id}", get(upload_status).delete(upload_discard))
+        .route("/uploads/{id}/files/{index}", put(upload_chunk).layer(DefaultBodyLimit::max(uploads::CHUNK_BYTES)))
+        .route("/uploads/{id}/complete", post(upload_complete))
         .route("/imports/path", post(import_path))
         .route("/imports/{id}/commit", post(import_commit))
+        .route("/jobs/{id}", get(job_status))
         .route(
             "/dictionaries/{id}",
             put(dictionary_update).delete(dictionary_remove),
@@ -660,7 +682,11 @@ async fn lookup(
                 .collect(),
         };
         for article in &mut articles {
-            article.html = render::render_document(&article.html, &options)?;
+            article.html = render::render_document_with_styles(&article.html, &options, |path| {
+                let bytes = engine.resource(path).ok()?;
+                if bytes.as_ref().len() > 256 * 1024 { return None; }
+                std::str::from_utf8(bytes.as_ref()).ok().map(str::to_owned)
+            })?;
         }
         Ok(articles)
     })
@@ -968,6 +994,11 @@ async fn receive_upload(mut multipart: Multipart, dest: &Path, field_name: &str)
                 .await
                 .map_err(anyhow::Error::from)?;
         }
+        // Tokio file writes may still be in flight when write_all returns.
+        // Readers must see the final bytes (including the ZIP directory) before parsing.
+        tokio::io::AsyncWriteExt::flush(&mut file)
+            .await
+            .map_err(anyhow::Error::from)?;
     }
     if count == 0 {
         return Err(ApiError::bad("No files uploaded"));
@@ -986,6 +1017,87 @@ async fn import_upload(
     }
     let preview = blocking(app, move |_| imports::inspect(&dest, id)).await?;
     Ok(Json(preview))
+}
+
+async fn upload_create(State(app): State<Shared>, Json(spec): Json<uploads::UploadSpec>) -> Result<Json<uploads::Status>> {
+    let status = blocking(app, move |app| {
+        let _files = app.upload_files.lock().unwrap();
+        if let Some(id) = &spec.dictionary_id {
+            let dictionary = app.dictionary(id).map_err(|error| anyhow::anyhow!(error.2))?;
+            let root = app.root(&dictionary);
+            let existing: u64 = imports::list(&root)?.iter().map(|file| file.size).sum();
+            let added = spec.files.iter().try_fold(0u64, |sum, file| sum.checked_add(file.size)).context("Upload too large")?;
+            anyhow::ensure!(existing.checked_add(added).is_some_and(|total| total <= imports::MAX_BYTES), "词典与资源的总大小不能超过 2 GiB");
+            for file in &spec.files {
+                anyhow::ensure!(!root.join(imports::safe_path(&file.path)?).exists(), "Resource path already exists; choose a different path");
+            }
+        }
+        uploads::create(&app.config.data_dir, spec)
+    }).await?;
+    Ok(Json(status))
+}
+async fn upload_status(State(app): State<Shared>, AxPath(id): AxPath<String>) -> Result<Json<uploads::Status>> {
+    Ok(Json(blocking(app, move |app| {
+        let _files = app.upload_files.lock().unwrap();
+        uploads::status(&app.config.data_dir, &id)
+    }).await?))
+}
+#[derive(Deserialize)]
+struct ChunkPosition { offset: u64 }
+async fn upload_chunk(State(app): State<Shared>, AxPath((id,index)): AxPath<(String,usize)>, Query(position): Query<ChunkPosition>, bytes: axum::body::Bytes) -> Result<Json<Value>> {
+    let received = blocking(app, move |app| {
+        let _files = app.upload_files.lock().unwrap();
+        uploads::append(&app.config.data_dir, &id, index, position.offset, &bytes)
+    }).await?;
+    Ok(Json(json!({"received":received})))
+}
+async fn upload_discard(State(app): State<Shared>, AxPath(id): AxPath<String>) -> Result<Json<Value>> {
+    let _completion = app.upload_completion.lock().await;
+    blocking(app.clone(), move |app| {
+        let _files = app.upload_files.lock().unwrap();
+        uploads::discard(&app.config.data_dir, &id)
+    }).await?;
+    Ok(Json(json!({"ok":true})))
+}
+async fn upload_complete(State(app): State<Shared>, AxPath(id): AxPath<String>) -> Result<Json<Value>> {
+    // Finish publication even if the client loses the response. A retry reads the
+    // saved result instead of attaching the same resource a second time.
+    tokio::spawn(async move { complete_upload(app, id).await }).await
+        .map_err(|error| ApiError::bad(error.to_string()))?.map(Json)
+}
+async fn complete_upload(app: Shared, id: String) -> Result<Value> {
+    let _completion = app.upload_completion.lock().await;
+    let upload_id = id.clone();
+    let (spec, saved) = blocking(app.clone(), move |app| {
+        let _files = app.upload_files.lock().unwrap();
+        uploads::target(&app.config.data_dir, &upload_id)
+    }).await?;
+    if let Some(saved) = saved { return Ok(saved); }
+    let recovered = if let Some(dictionary_id) = &spec.dictionary_id {
+        let dictionary = app.dictionary(dictionary_id)?;
+        (dictionary.revision == id).then(|| serde_json::to_value(dictionary).unwrap())
+    } else { None };
+    let result = if let Some(recovered) = recovered { recovered } else {
+        let upload_id = id.clone();
+        let prepared = blocking(app.clone(), move |app| {
+            let _files = app.upload_files.lock().unwrap();
+            uploads::prepare(&app.config.data_dir, &upload_id)
+        }).await?;
+        if let Some(result) = prepared.result { result } else if prepared.spec.kind == "import" {
+            let upload_id = id.clone();
+            let preview = blocking(app.clone(), move |_| imports::inspect(&prepared.stage, upload_id)).await?;
+            serde_json::to_value(preview).unwrap()
+        } else {
+            let dictionary = append_resources(app.clone(), prepared.spec.dictionary_id.unwrap(), prepared.stage, Some(id.clone())).await?;
+            serde_json::to_value(dictionary).unwrap()
+        }
+    };
+    let saved = result.clone();
+    blocking(app.clone(), move |app| {
+        let _files = app.upload_files.lock().unwrap();
+        uploads::finish(&app.config.data_dir, &id, saved)
+    }).await?;
+    Ok(result)
 }
 #[derive(Deserialize)]
 struct PathImport {
@@ -1016,9 +1128,15 @@ async fn import_path(
 struct CommitRequest {
     dictionaries: Vec<Candidate>,
 }
+#[derive(Default, Deserialize)]
+struct CommitOptions {
+    #[serde(default)]
+    background: bool,
+}
 async fn import_commit(
     State(app): State<Shared>,
     AxPath(import_id): AxPath<String>,
+    Query(options): Query<CommitOptions>,
     Json(p): Json<CommitRequest>,
 ) -> Result<Json<Value>> {
     if !valid_id(&import_id) {
@@ -1027,7 +1145,50 @@ async fn import_commit(
     if p.dictionaries.is_empty() || p.dictionaries.len() > 1000 {
         return Err(ApiError::bad("Select 1–1000 dictionaries"));
     }
+    if !options.background {
+        let dictionaries = commit_import(app, import_id, p, None).await?;
+        return Ok(Json(json!({"dictionaries": dictionaries})));
+    }
+    {
+        let jobs = app.jobs.lock().unwrap();
+        if jobs.iter().any(|job| job.id == import_id && matches!(job.state.as_str(), "queued" | "running" | "done")) {
+            return Ok(Json(json!({"job_id": import_id})));
+        }
+    }
+    if !app.config.data_dir.join("staging").join(&import_id).is_dir() {
+        return Err(ApiError::missing());
+    }
+    add_job(&app, Job {
+        id: import_id.clone(), kind: "import".into(), dictionary_id: None,
+        state: "queued".into(), progress: 0, total: p.dictionaries.len(), error: None,
+        stage: Some("queued".into()), detail: None,
+    })?;
+    let returned = import_id.clone();
+    tokio::spawn(async move {
+        let result = commit_import(app.clone(), import_id.clone(), p, Some(import_id.clone())).await;
+        let mut jobs = app.jobs.lock().unwrap();
+        if let Some(job) = jobs.iter_mut().find(|job| job.id == import_id && matches!(job.state.as_str(), "queued" | "running")) {
+            match result {
+                Ok(dictionaries) => {
+                    job.state = "done".into();
+                    job.stage = Some("done".into());
+                    job.progress = job.total;
+                    job.dictionary_id = dictionaries.first().map(|dictionary| dictionary.id.clone());
+                }
+                Err(error) => { job.state = "error".into(); job.error = Some(error.2); }
+            }
+        }
+    });
+    Ok(Json(json!({"job_id": returned})))
+}
+
+async fn commit_import(app: Shared, import_id: String, p: CommitRequest, job: Option<String>) -> Result<Vec<Dictionary>> {
     let _mutation = app.mutation.lock().await;
+    if let Some(id) = &job {
+        if !app.jobs.lock().unwrap().iter().any(|job| job.id == *id && matches!(job.state.as_str(), "queued" | "running")) {
+            return Err(ApiError::bad("导入任务已取消"));
+        }
+    }
     if !app
         .config
         .data_dir
@@ -1038,17 +1199,19 @@ async fn import_commit(
         return Err(ApiError::missing());
     }
     let dictionaries = blocking(app.clone(), move |app| {
+        import_progress(&app, job.as_deref(), "preparing", None, 0);
         let stage = app.config.data_dir.join("staging").join(&import_id);
         let preview = imports::inspect(&stage, import_id)?;
         let files: HashMap<_, _> = preview.files.iter().map(|f| (f.path.as_str(), f)).collect();
         let revision = crate::model::id();
         let root = app.config.data_dir.join("revisions").join(&revision);
         let outcome = (|| -> anyhow::Result<Vec<Dictionary>> {
-            imports::copy_tree(&stage, &root)?;
+            imports::clone_revision(&stage, &root)?;
             let mut dictionaries = Vec::new();
             let mut catalogs = Vec::new();
             let mut seen = HashSet::new();
             for c in p.dictionaries {
+                import_progress(&app, job.as_deref(), "headwords", Some(&c.name), dictionaries.len());
                 imports::safe_path(&c.mdx)?;
                 if !seen.insert(c.mdx.clone())
                     || files.get(c.mdx.as_str()).is_none_or(|f| f.kind != "mdx")
@@ -1142,6 +1305,7 @@ async fn import_commit(
                 catalogs.push((dictionary.id.clone(), words));
                 dictionaries.push(dictionary);
             }
+            import_progress(&app, job.as_deref(), "catalog", None, dictionaries.len());
             let _publication = app.catalog_publication.lock().unwrap();
             let mut words = app.store.words()?;
             for (id, entries) in &catalogs {
@@ -1162,7 +1326,39 @@ async fn import_commit(
         outcome
     })
     .await?;
-    Ok(Json(json!({"dictionaries":dictionaries})))
+    Ok(dictionaries)
+}
+
+fn import_progress(app: &App, id: Option<&str>, stage: &str, detail: Option<&str>, progress: usize) {
+    if let Some(id) = id {
+        if let Some(job) = app.jobs.lock().unwrap().iter_mut().find(|job| job.id == id) {
+            job.state = "running".into();
+            job.stage = Some(stage.into());
+            job.detail = detail.map(str::to_owned);
+            job.progress = progress;
+        }
+    }
+}
+
+async fn job_status(State(app): State<Shared>, AxPath(id): AxPath<String>) -> Result<Json<Job>> {
+    app.jobs.lock().unwrap().iter().find(|job| job.id == id).cloned().map(Json).ok_or_else(ApiError::missing)
+}
+
+fn add_job(app: &App, job: Job) -> Result<()> {
+    let mut jobs = app.jobs.lock().unwrap();
+    if jobs.iter().filter(|job| matches!(job.state.as_str(), "queued" | "running")).count() >= 64 {
+        return Err(ApiError(StatusCode::TOO_MANY_REQUESTS, "job_limit", "Too many background jobs".into()));
+    }
+    if jobs.iter().any(|existing| existing.id == job.id && matches!(existing.state.as_str(), "queued" | "running" | "done")) {
+        return Err(ApiError::bad("导入任务已提交"));
+    }
+    jobs.retain(|existing| existing.id != job.id);
+    while jobs.len() >= 256 {
+        if let Some(index) = jobs.iter().position(|job| !matches!(job.state.as_str(), "queued" | "running")) { jobs.remove(index); }
+        else { break; }
+    }
+    jobs.push(job);
+    Ok(())
 }
 
 fn present_value<'de, D: serde::Deserializer<'de>>(
@@ -1255,39 +1451,18 @@ async fn dictionary_update(
         d.typography_mode = mode;
     }
     let d = blocking(app.clone(), move |app| {
-        let rebound = p.resources.is_some();
-        let mut new_root = None;
         if let Some(mut resources) = p.resources {
             validate_resources(&resources, &d)?;
             resources.sort_by_key(|r| r.order);
             for (order, resource) in resources.iter_mut().enumerate() {
                 resource.order = order;
             }
-            let revision = crate::model::id();
-            let root = app.config.data_dir.join("revisions").join(&revision);
-            if let Err(error) = imports::copy_tree(&app.root(&d), &root) {
-                let _ = std::fs::remove_dir_all(&root);
-                return Err(error);
-            }
-            d.revision = revision;
             d.resources = resources;
-            new_root = Some(root);
-            d.index_status = IndexStatus {
-                state: "missing".into(),
-                indexed: 0,
-                total: d.entries,
-                error: None,
-            };
-            cancel_jobs(&app, Some(&d.id), None)?;
         }
-        if let Err(error) = app.store.update_dictionary(&d, rebound) {
-            if let Some(root) = new_root {
-                let _ = std::fs::remove_dir_all(root);
-            }
-            return Err(error);
-        }
-        app.evict(Some(&d.id));
-        Ok(d)
+        // Bindings and presentation do not change MDX records. Preserve derived
+        // indexes and any active indexer; reader keys already include bindings.
+        app.store.update_dictionary(&d, false)?;
+        app.dictionary(&d.id).map_err(|e| anyhow::anyhow!(e.2))
     })
     .await?;
     Ok(Json(d))
@@ -1332,16 +1507,19 @@ async fn resource_append(
         let _ = tokio::fs::remove_dir_all(&stage).await;
         return Err(e);
     }
+    Ok(Json(append_resources(app, dictionary_id, stage, None).await?))
+}
+async fn append_resources(app: Shared, dictionary_id: String, stage: PathBuf, revision: Option<String>) -> Result<Dictionary> {
     let _mutation = app.mutation.lock().await;
     let result = blocking(app.clone(), move |app| {
         let mut d = app
             .dictionary(&dictionary_id)
             .map_err(|e| anyhow::anyhow!(e.2))?;
-        let revision = crate::model::id();
+        let revision = revision.unwrap_or_else(crate::model::id);
         let root = app.config.data_dir.join("revisions").join(&revision);
         let result = (|| -> anyhow::Result<Dictionary> {
             let files = imports::list(&stage)?;
-            imports::copy_tree(&app.root(&d), &root)?;
+            imports::clone_revision(&app.root(&d), &root)?;
             for file in files {
                 if file.kind == "mdx" {
                     bail!("Cannot append MDX as a resource");
@@ -1351,7 +1529,7 @@ async fn resource_append(
                     bail!("Resource path already exists; choose a different path");
                 }
                 std::fs::create_dir_all(target.parent().unwrap())?;
-                std::fs::copy(stage.join(&file.path), target)?;
+                std::fs::rename(stage.join(&file.path), target)?;
                 let key = if file.kind == "mdd" {
                     String::new()
                 } else {
@@ -1374,16 +1552,8 @@ async fn resource_append(
             }
             imports::list(&root)?;
             d.revision = revision;
-            d.index_status = IndexStatus {
-                state: "missing".into(),
-                indexed: 0,
-                total: d.entries,
-                error: None,
-            };
-            cancel_jobs(&app, Some(&d.id), None)?;
-            app.store.update_dictionary(&d, true)?;
-            app.evict(Some(&d.id));
-            Ok(d)
+            app.store.update_dictionary(&d, false)?;
+            app.dictionary(&d.id).map_err(|e| anyhow::anyhow!(e.2))
         })();
         let _ = std::fs::remove_dir_all(stage);
         if result.is_err() {
@@ -1392,7 +1562,7 @@ async fn resource_append(
         result
     })
     .await?;
-    Ok(Json(result))
+    Ok(result)
 }
 #[derive(Deserialize)]
 struct ResourceQuery {
@@ -1516,17 +1686,22 @@ async fn resource_preview(
             if bytes.as_ref().len() > 32 * 1024 * 1024 {
                 bail!("Preview exceeds 32 MiB");
             }
-            Ok(axum::body::Bytes::from_owner(bytes))
+            if audio::is_speex(bytes.as_ref()) {
+                app.audio.lock().unwrap().decode(bytes.as_ref())
+            } else { Ok(axum::body::Bytes::from_owner(bytes)) }
         } else {
             let path = app.root(&d).join(&r.path);
             if std::fs::metadata(&path)?.len() > 32 * 1024 * 1024 {
                 bail!("Preview exceeds 32 MiB");
             }
-            Ok(axum::body::Bytes::from(std::fs::read(path)?))
+            let bytes = std::fs::read(path)?;
+            if audio::is_speex(&bytes) { app.audio.lock().unwrap().decode(&bytes) }
+            else { Ok(axum::body::Bytes::from(bytes)) }
         }
     })
     .await?;
-    Ok(bytes_response(bytes, &display, false))
+    let display = if bytes.starts_with(b"RIFF") && bytes.get(8..12) == Some(b"WAVE") { "audio.wav" } else { &display };
+    Ok(bytes_response(bytes, display, false))
 }
 async fn content(
     State(app): State<Shared>,
@@ -1564,12 +1739,15 @@ async fn content(
         if imports::kind(&path) == "css" {
             let css = std::str::from_utf8(bytes.as_ref()).context("CSS must be UTF-8")?;
             Ok(axum::body::Bytes::from(render::rewrite_css(css, &base, &path)))
+        } else if audio::is_speex(bytes.as_ref()) {
+            app.audio.lock().unwrap().decode(bytes.as_ref())
         } else {
             Ok(axum::body::Bytes::from_owner(bytes))
         }
     })
     .await?;
-    Ok(bytes_response(bytes, &display, true))
+    let display = if bytes.starts_with(b"RIFF") && bytes.get(8..12) == Some(b"WAVE") { "audio.wav" } else { &display };
+    Ok(bytes_response(bytes, display, true))
 }
 
 #[derive(Deserialize)]
@@ -1653,6 +1831,8 @@ async fn maintenance(
             dictionaries.len()
         },
         error: None,
+        stage: None,
+        detail: None,
     };
     {
         let mut jobs = app.jobs.lock().unwrap();
@@ -1738,12 +1918,15 @@ fn run_maintenance(
         if !job_active(app, job) {
             return Ok(());
         }
+        // A registered ID's MDX is immutable; resource-only revisions can change
+        // while this worker reads its original revision. Restore/removal cancel
+        // jobs before publishing replacement dictionaries.
         if !app
             .store
             .load()?
             .dictionaries
             .iter()
-            .any(|v| v.id == d.id && v.revision == d.revision)
+            .any(|v| v.id == d.id && v.mdx == d.mdx)
         {
             continue;
         }
@@ -1824,7 +2007,7 @@ fn run_maintenance(
                     app.store.update(|s| {
                         if let Some(live) = s.dictionaries.iter_mut().find(|v| {
                             v.id == d.id
-                                && v.revision == d.revision
+                                && v.mdx == d.mdx
                                 && v.index_status.state == "building"
                         }) {
                             live.index_status.indexed = record + 1;
@@ -1841,7 +2024,7 @@ fn run_maintenance(
                     if let Some(live) = s
                         .dictionaries
                         .iter_mut()
-                        .find(|v| v.id == d.id && v.revision == d.revision)
+                        .find(|v| v.id == d.id && v.mdx == d.mdx)
                     {
                         live.index_status = IndexStatus {
                             state: "ready".into(),
@@ -1863,7 +2046,7 @@ fn run_maintenance(
                         if live.index_status.state == "building"
                             && dictionaries
                                 .iter()
-                                .any(|v| v.id == live.id && v.revision == live.revision)
+                                .any(|v| v.id == live.id && v.mdx == live.mdx)
                         {
                             live.index_status.state = "error".into();
                             live.index_status.error = Some(error.to_string());
@@ -1972,7 +2155,9 @@ fn validate_snapshot(snapshot: &Snapshot) -> anyhow::Result<()> {
                 bail!("Invalid resource id");
             }
             imports::safe_path(&r.path)?;
-            if imports::kind(&r.path) != r.kind || r.kind == "mdx" {
+            // Older installations classified loose Speex files as generic files.
+            let legacy_speex = r.kind == "file" && Path::new(&r.path).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("spx"));
+            if (!legacy_speex && imports::kind(&r.path) != r.kind) || r.kind == "mdx" {
                 bail!("Invalid resource kind");
             }
         }

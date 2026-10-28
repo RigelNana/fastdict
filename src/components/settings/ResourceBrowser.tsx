@@ -81,7 +81,7 @@ export default function ResourceBrowser({
       const extension = path.split('.').at(-1)?.toLowerCase() ?? ''
       const kind: Preview['kind'] = /^(png|jpe?g|gif|webp|avif|bmp|ico)$/.test(extension)
         ? 'image'
-        : /^(mp3|wav|ogg|m4a|flac|aac)$/.test(extension)
+        : /^(mp3|wav|ogg|m4a|flac|aac|spx)$/.test(extension)
           ? 'audio'
           : /^(woff2?|ttf|otf)$/.test(extension)
             ? 'font'
@@ -94,11 +94,12 @@ export default function ResourceBrowser({
           : kind === 'image'
             ? `image/${extension === 'jpg' ? 'jpeg' : extension === 'ico' ? 'x-icon' : extension}`
             : kind === 'audio'
-              ? `audio/${extension === 'mp3' ? 'mpeg' : extension === 'm4a' ? 'mp4' : extension}`
+              ? (blob.type.startsWith('audio/') ? blob.type : `audio/${extension === 'mp3' ? 'mpeg' : extension === 'm4a' ? 'mp4' : extension}`)
               : 'application/octet-stream'
       const url = URL.createObjectURL(new Blob([blob], { type: mime }))
       objectUrl = url
-      const result: Preview = { url, kind, filename: path }
+      const filename = kind === 'audio' && /audio\/(?:x-)?wav/.test(blob.type) ? path.replace(/\.[^/.]+$/, '.wav') : path
+      const result: Preview = { url, kind, filename }
       if (kind === 'text')
         result.text =
           (await blob.slice(0, 256 * 1024).text()) +
