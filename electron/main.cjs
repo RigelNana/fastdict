@@ -151,8 +151,7 @@ function setupMenu() {
   }
 }
 
-function createWindow(bridgePayload) {
-  const encoded = Buffer.from(JSON.stringify(bridgePayload), 'utf8').toString('base64')
+function createWindow() {
   const iconPath = path.join(
     app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', 'build'),
     'icon.png',
@@ -169,7 +168,6 @@ function createWindow(bridgePayload) {
     show: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
-      additionalArguments: [`--fastdict-bridge=${encoded}`],
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -229,9 +227,12 @@ if (!gotLock) {
       data_dir: dataDir,
       local_only: true,
     }
+    ipcMain.on('fastdict:bridge', (event) => {
+      event.returnValue = bridge
+    })
 
     // Open window immediately for instant perceived startup while Rust engine initializes in parallel.
-    const win = createWindow(bridge)
+    const win = createWindow()
 
     try {
       const serverUrl = await startBackend(dataDir, token)
