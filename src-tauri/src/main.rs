@@ -5,7 +5,58 @@ use serde_json::json;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
+use tauri_plugin_dialog::DialogExt;
 use uuid::Uuid;
+
+fn local_import_roots() -> Vec<PathBuf> {
+    #[cfg(unix)]
+    {
+        vec![PathBuf::from("/")]
+    }
+    #[cfg(windows)]
+    {
+        ('A'..='Z')
+            .map(|letter| PathBuf::from(format!("{letter}:\\")))
+            .filter(|root| root.exists())
+            .collect()
+    }
+}
+
+#[tauri::command]
+async fn pick_import_folders(app: tauri::AppHandle) -> Vec<String> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog()
+        .file()
+        .set_title("选择一个或多个词典文件夹")
+        .pick_folders(move |folders| {
+            let paths = folders
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|p| p.into_path().ok())
+                .map(|p| p.to_string_lossy().into_owned())
+                .collect::<Vec<_>>();
+            let _ = tx.send(paths);
+        });
+    rx.await.unwrap_or_default()
+}
+
+#[tauri::command]
+async fn pick_import_files(app: tauri::AppHandle) -> Vec<String> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog()
+        .file()
+        .set_title("选择词典与伴随资源文件")
+        .pick_files(move |files| {
+            let paths = files
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|p| p.into_path().ok())
+                .map(|p| p.to_string_lossy().into_owned())
+                .collect::<Vec<_>>();
+            let _ = tx.send(paths);
+        });
+    rx.await.unwrap_or_default()
+}
 
 struct EmbeddedBackend {
     runtime: tokio::runtime::Runtime,
@@ -56,6 +107,11 @@ fn main() {
     let shutdown_holder = backend_holder.clone();
 
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .invoke_handler(tauri::generate_handler![
+            pick_import_folders,
+            pick_import_files
+        ])
         .setup(move |app| {
             let data_dir = resolve_data_dir(app.handle());
             let token = format!("{}{}", Uuid::new_v4().simple(), Uuid::new_v4().simple());
@@ -69,7 +125,7 @@ fn main() {
                 listen: "127.0.0.1:0".parse().expect("valid loopback addr"),
                 data_dir: data_dir.clone(),
                 token: Some(token.clone()),
-                import_roots: vec![],
+                import_roots: local_import_roots(),
                 static_dir: PathBuf::new(),
             };
 

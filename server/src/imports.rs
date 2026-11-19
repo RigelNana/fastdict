@@ -217,6 +217,49 @@ pub fn clone_revision(source: &Path, dest: &Path) -> Result<()> {
     }
     Ok(())
 }
+pub fn copy_authorized_any(source: &Path, roots: &[PathBuf], dest: &Path) -> Result<()> {
+    let canonical = source.canonicalize()?;
+    let allowed = roots
+        .iter()
+        .filter_map(|r| r.canonicalize().ok())
+        .find(|r| canonical.starts_with(r))
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "Path is outside configured import roots",
+            )
+        })?;
+    if canonical.is_dir() {
+        return copy_authorized(&canonical, roots, dest);
+    }
+    if !canonical.is_file() {
+        bail!("Import path must be a directory or regular file");
+    }
+    let directory = cap_std::fs::Dir::open_ambient_dir(&allowed, cap_std::ambient_authority())?;
+    let relative = canonical.strip_prefix(&allowed)?;
+    let file_name = canonical
+        .file_name()
+        .and_then(|s| s.to_str())
+        .context("File name must be UTF-8")?;
+    let safe_name = safe_path(file_name)?;
+    let mut handle = directory.open(relative)?;
+    let len = handle.metadata()?.len();
+    if len > MAX_BYTES {
+        bail!("Import exceeds size limit");
+    }
+    std::fs::create_dir_all(dest)?;
+    let target = dest.join(safe_name);
+    let mut output = std::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(target)?;
+    let copied = std::io::copy(&mut std::io::Read::by_ref(&mut handle).take(len + 1), &mut output)?;
+    if copied != len {
+        bail!("Import source changed while copying");
+    }
+    Ok(())
+}
+
 pub fn copy_authorized(source: &Path, roots: &[PathBuf], dest: &Path) -> Result<()> {
     let canonical = source.canonicalize()?;
     let allowed = roots

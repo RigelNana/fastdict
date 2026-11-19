@@ -1236,21 +1236,68 @@ async fn complete_upload(app: Shared, id: String) -> Result<Value> {
 }
 #[derive(Deserialize)]
 struct PathImport {
-    path: String,
+    #[serde(default)]
+    path: Option<String>,
+    #[serde(default)]
+    paths: Vec<String>,
 }
 async fn import_path(
     State(app): State<Shared>,
     Json(p): Json<PathImport>,
 ) -> Result<Json<ImportPreview>> {
-    if p.path.len() > 4096 {
+    let mut inputs: Vec<String> = p
+        .paths
+        .into_iter()
+        .map(|s| s.trim().to_owned())
+        .filter(|s| !s.is_empty())
+        .collect();
+    if inputs.is_empty() {
+        if let Some(single) = p.path.map(|s| s.trim().to_owned()).filter(|s| !s.is_empty()) {
+            inputs.push(single);
+        }
+    }
+    if inputs.is_empty() || inputs.len() > 100 {
+        return Err(ApiError::bad("请选择 1–100 个导入路径"));
+    }
+    if inputs.iter().any(|s| s.len() > 4096) {
         return Err(ApiError::bad("Path too long"));
     }
     let preview = blocking(app, move |app| {
         let id = crate::model::id();
         let dest = app.config.data_dir.join("staging").join(&id);
-        if let Err(e) =
-            imports::copy_authorized(Path::new(&p.path), &app.config.import_roots, &dest)
-        {
+        let outcome = (|| -> anyhow::Result<()> {
+            if inputs.len() == 1 && Path::new(&inputs[0]).is_dir() {
+                imports::copy_authorized(Path::new(&inputs[0]), &app.config.import_roots, &dest)?;
+            } else {
+                let mut used_folders = HashSet::new();
+                for raw in &inputs {
+                    let source = Path::new(raw);
+                    if source.is_dir() {
+                        let base = source
+                            .file_name()
+                            .and_then(|s| s.to_str())
+                            .filter(|s| !s.is_empty() && imports::safe_path(s).is_ok())
+                            .unwrap_or("folder")
+                            .to_owned();
+                        let mut folder = base.clone();
+                        let mut suffix = 2usize;
+                        while !used_folders.insert(folder.to_lowercase()) {
+                            folder = format!("{base}-{suffix}");
+                            suffix += 1;
+                        }
+                        imports::copy_authorized(
+                            source,
+                            &app.config.import_roots,
+                            &dest.join(&folder),
+                        )?;
+                    } else {
+                        imports::copy_authorized_any(source, &app.config.import_roots, &dest)?;
+                    }
+                }
+            }
+            Ok(())
+        })();
+        if let Err(e) = outcome {
             let _ = std::fs::remove_dir_all(&dest);
             return Err(e);
         }
