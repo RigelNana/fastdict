@@ -619,6 +619,8 @@ pub async fn start(mut config: ServeConfig) -> anyhow::Result<RunningServer> {
 
 pub async fn serve(config: ServeConfig) -> anyhow::Result<()> {
     let server = start(config).await?;
+    println!("FASTDICT_READY http://{}", server.addr());
+    let _ = std::io::stdout().flush();
     let _ = tokio::signal::ctrl_c().await;
     server.shutdown().await
 }

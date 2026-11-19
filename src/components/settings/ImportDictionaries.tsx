@@ -62,17 +62,6 @@ interface FileSystemEntryLike {
   }
 }
 
-interface TauriGlobal {
-  core?: {
-    invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T>
-  }
-}
-
-function getTauriInvoke() {
-  if (typeof window === 'undefined') return undefined
-  return (window as Window & { __TAURI__?: TauriGlobal }).__TAURI__?.core?.invoke
-}
-
 async function readDirectoryEntry(entry: FileSystemEntryLike, prefix: string): Promise<StagedFile[]> {
   if (entry.isFile && entry.file) {
     const file = await new Promise<File>((resolve, reject) => {
@@ -238,8 +227,9 @@ export default function ImportDictionaries({
   onImported: (id: string | null) => void
   onActivityChange?: (state: { busy: boolean; label: string; percent?: number } | null) => void
 }) {
-  const isDesktop = Boolean(getDesktopBridge()?.local_only)
-  const canUseNativeDialog = isDesktop && Boolean(getTauriInvoke())
+  const desktopBridge = getDesktopBridge()
+  const isDesktop = Boolean(desktopBridge?.local_only)
+  const canUseNativeDialog = isDesktop && Boolean(desktopBridge?.pickImportFolders)
 
   const [source, setSource] = useState<ImportSource>('files')
   const [pendingLocalPaths, setPendingLocalPaths] = useState<string[]>([])
@@ -363,10 +353,10 @@ export default function ImportDictionaries({
   }))
 
   async function pickNativeFolders() {
-    const invoke = getTauriInvoke()
-    if (!invoke || busy) return
+    const picker = desktopBridge?.pickImportFolders
+    if (!picker || busy) return
     try {
-      const picked = await invoke<string[]>('pick_import_folders')
+      const picked = await picker()
       if (!picked.length) return
       setPendingLocalPaths((current) => {
         const next = [...current]
@@ -381,10 +371,10 @@ export default function ImportDictionaries({
   }
 
   async function pickNativeFiles() {
-    const invoke = getTauriInvoke()
-    if (!invoke || busy) return
+    const picker = desktopBridge?.pickImportFiles
+    if (!picker || busy) return
     try {
-      const picked = await invoke<string[]>('pick_import_files')
+      const picked = await picker()
       if (!picked.length) return
       setPendingLocalPaths((current) => {
         const next = [...current]

@@ -2,16 +2,18 @@
   "name": "fastdict",
   "private": true,
   "version": "0.1.0",
+  "description": "FastDict local MDX/MDD dictionary desktop reader",
+  "author": "FastDict",
+  "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "serve": "cargo run --release -p fastdict -- serve",
-    "tauri": "tauri",
-    "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build",
-    "desktop:appimage": "NO_STRIP=true tauri build --bundles appimage"
+    "desktop:dev": "npm run build && cargo build --release -p fastdict && electron .",
+    "desktop:build": "npm run build && cargo build --release -p fastdict && electron-builder",
+    "desktop:appimage": "npm run build && cargo build --release -p fastdict && electron-builder --linux AppImage"
   },
   "dependencies": {
     "@dnd-kit/core": "latest",
@@ -35,11 +37,12 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "latest",
-    "@tauri-apps/cli": "^2.11.2",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
     "tailwindcss": "latest",
     "typescript": "latest",
     "vite": "latest"

@@ -1,0 +1,38 @@
+appId: cc.zakobaka.fastdict
+productName: FastDict
+copyright: Copyright © 2026 FastDict
+directories:
+  output: release
+  buildResources: build
+asar: true
+files:
+  - electron/**/*
+  - package.json
+extraResources:
+  - from: dist
+    to: dist
+  - from: build/icon.png
+    to: icon.png
+  - from: target/release
+    to: bin
+    filter:
+      - fastdict
+      - fastdict.exe
+linux:
+  icon: build/icon.png
+  category: Education
+  target:
+    - AppImage
+    - deb
+mac:
+  icon: build/icon.icns
+  category: public.app-category.reference
+  target:
+    - dmg
+win:
+  icon: build/icon.ico
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

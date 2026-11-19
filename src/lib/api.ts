@@ -19,6 +19,8 @@ export interface DesktopBridge {
   token: string
   data_dir: string
   local_only: boolean
+  pickImportFolders?: () => Promise<string[]>
+  pickImportFiles?: () => Promise<string[]>
 }
 
 export function getDesktopBridge(): DesktopBridge | undefined {
