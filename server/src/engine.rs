@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
-use wodix::{Limits, Mdx, Read, Reader, Resources, Version};
+use wodix::{Limits, Lookup, Mdx, Read, Reader, Resources, Version};
 
 pub use wodix::ResourceMount;
 
@@ -179,17 +179,77 @@ impl Engine {
     }
 
     pub fn lookup(&self, word: &str) -> Result<Vec<EngineArticle>> {
-        Ok(self
-            .dictionary
-            .lookup_detailed(word)?
-            .into_iter()
-            .map(|article| EngineArticle {
-                html: article.html,
-                source_ids: article.source_ids,
-                resolved_ids: article.resolved_ids,
-                redirects: article.redirects,
-            })
-            .collect())
+        match self.dictionary.lookup_detailed(word) {
+            Ok(articles) => Ok(articles
+                .into_iter()
+                .map(|article| EngineArticle {
+                    html: article.html,
+                    source_ids: article.source_ids,
+                    resolved_ids: article.resolved_ids,
+                    redirects: article.redirects,
+                })
+                .collect()),
+            Err(
+                err @ (wodix::Error::RedirectCycle(_)
+                | wodix::Error::RedirectMissing(_)
+                | wodix::Error::RedirectLimit(_)),
+            ) => {
+                let recovered = self.lookup_tolerant(word)?;
+                if !recovered.is_empty() {
+                    Ok(recovered)
+                } else {
+                    Err(err.into())
+                }
+            }
+            Err(err) => Err(err.into()),
+        }
+    }
+
+    /// Tolerant fallback for real-world MDX dictionaries (e.g. variant/simplified-traditional
+    /// cross-references) that contain a cyclic or dangling `@@@LINK=` alongside valid articles.
+    fn lookup_tolerant(&self, word: &str) -> Result<Vec<EngineArticle>> {
+        use std::collections::{HashSet, VecDeque};
+
+        let roots = self.dictionary.index().exact(word);
+        if roots.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut queue: VecDeque<(usize, usize, Vec<String>)> = roots
+            .iter()
+            .copied()
+            .map(|id| (id, 0usize, Vec::new()))
+            .collect();
+        let mut visited: HashSet<usize> = HashSet::new();
+        let mut seen_html: HashSet<String> = HashSet::new();
+        let mut articles: Vec<EngineArticle> = Vec::new();
+        let max_depth = 16usize;
+        let max_visits = 256usize;
+
+        while let Some((id, depth, chain)) = queue.pop_front() {
+            if visited.len() >= max_visits || !visited.insert(id) {
+                continue;
+            }
+            let raw = self.dictionary.reader().text(id)?;
+            if let Some(target) = parse_mdx_link(&raw) {
+                if depth < max_depth {
+                    let mut next_chain = chain;
+                    next_chain.push(target.to_owned());
+                    for &next_id in self.dictionary.index().exact(target) {
+                        if !visited.contains(&next_id) {
+                            queue.push_back((next_id, depth + 1, next_chain.clone()));
+                        }
+                    }
+                }
+            } else if seen_html.insert(raw.clone()) {
+                articles.push(EngineArticle {
+                    html: raw,
+                    source_ids: roots.to_vec(),
+                    resolved_ids: vec![id],
+                    redirects: chain,
+                });
+            }
+        }
+        Ok(articles)
     }
 
     /// Raw decoded record text for the explicit background full-text indexer.
@@ -217,6 +277,13 @@ impl Engine {
             .resident
             .saturating_add(self.resources.cache_bytes())
     }
+}
+
+fn parse_mdx_link(raw: &str) -> Option<&str> {
+    let trimmed = raw.trim_start_matches('\u{feff}').trim_start();
+    let rest = trimmed.strip_prefix("@@@LINK=")?;
+    let target = rest.lines().next().unwrap_or("").trim();
+    (!target.is_empty()).then_some(target)
 }
 
 #[cfg(test)]
