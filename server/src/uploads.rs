@@ -80,7 +80,7 @@ pub fn create(data: &Path, spec: UploadSpec) -> Result<Status> {
         imports::safe_path(&file.path)?;
         ensure!(names.insert(file.path.clone()), "Duplicate upload path");
         total = total.checked_add(file.size).context("Upload too large")?;
-        ensure!(total <= imports::MAX_BYTES, "本次上传总大小不能超过 2 GiB");
+        ensure!(total <= imports::MAX_BYTES, "本次上传总大小不能超过 {} GiB", imports::MAX_GIB);
         if spec.kind == "resources" { ensure!(imports::kind(&file.path) != "mdx", "Cannot append MDX as a resource"); }
     }
     for file in &spec.files {

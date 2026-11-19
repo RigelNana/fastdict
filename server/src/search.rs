@@ -1,8 +1,11 @@
 use crate::model::{Dictionary, Snapshot};
 use serde::Serialize;
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashSet;
 use unicode_normalization::UnicodeNormalization;
 pub fn normalize(s: &str) -> String {
+    if s.is_ascii() {
+        return s.trim().to_ascii_lowercase();
+    }
     s.nfc().collect::<String>().to_lowercase().trim().to_owned()
 }
 #[derive(Clone, Serialize)]
@@ -17,16 +20,23 @@ pub struct Catalog {
 }
 impl Catalog {
     pub fn new(words: Vec<(String, String)>) -> Self {
-        let mut map: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
-        for (id, word) in words {
-            let ids = map.entry((normalize(&word), word)).or_default();
-            if !ids.contains(&id) {
-                ids.push(id);
+        let mut raw: Vec<(String, String, String)> = words
+            .into_iter()
+            .map(|(id, word)| (normalize(&word), word, id))
+            .collect();
+        // Stable sort preserves dictionary insertion order within identical (normalized, word) keys.
+        raw.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        let mut entries: Vec<(String, String, Vec<String>)> = Vec::new();
+        for (n, w, id) in raw {
+            if let Some(last) = entries.last_mut().filter(|last| last.0 == n && last.1 == w) {
+                if !last.2.contains(&id) {
+                    last.2.push(id);
+                }
+            } else {
+                entries.push((n, w, vec![id]));
             }
         }
-        Self {
-            entries: map.into_iter().map(|((n, w), ids)| (n, w, ids)).collect(),
-        }
+        Self { entries }
     }
     pub fn len(&self) -> usize {
         self.entries.len()

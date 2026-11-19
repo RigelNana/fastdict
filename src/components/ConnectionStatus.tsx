@@ -20,7 +20,7 @@ export default function ConnectionStatus() {
       id,
       duration: Infinity,
       action: { label: '重试', onClick: () => { void client.refetchQueries({ type: 'active' }) } },
-      cancel: { label: '连接设置', onClick: () => navigate('/settings/security') },
+      cancel: { label: '连接设置', onClick: () => navigate('/settings/system') },
     })
   }, [bootstrap.error, client, navigate])
   return null

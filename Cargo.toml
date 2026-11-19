@@ -1,4 +1,10 @@
 [workspace]
 resolver = "3"
 members = ["server"]
-exclude = ["vendor/wodix"]
+exclude = ["vendor/wodix", "src-tauri"]
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2

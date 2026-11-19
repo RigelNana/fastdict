@@ -7,6 +7,8 @@ import ConnectionStatus from '@/components/ConnectionStatus'
 import WindowScrollbar from '@/components/WindowScrollbar'
 import WorkspaceSidebar from '@/components/WorkspaceSidebar'
 import { useBootstrap } from '@/lib/api'
+import { readCachedTheme } from '@/lib/bootstrap-cache'
+import { connectionKey } from '@/lib/connection-storage'
 import DictionaryPage from '@/pages/DictionaryPage'
 import SettingsPage from '@/pages/SettingsPage'
 import darkreaderUrl from 'darkreader/darkreader.js?url'
@@ -31,7 +33,7 @@ export default function App() {
   const settingsOpen = location.pathname.startsWith('/settings')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => sessionStorage.getItem('fastdict.sidebar-collapsed') === 'true')
   const dictionaryLocation = useRef(settingsOpen ? { ...location, pathname: '/', search: '', hash: '' } : location)
-  const settingsLocation = useRef(settingsOpen ? location : { ...location, pathname: '/settings/app', search: '', hash: '' })
+  const settingsLocation = useRef(settingsOpen ? location : { ...location, pathname: '/settings/dictionaries', search: '', hash: '' })
   const settingsVisited = useRef(settingsOpen)
   if (!settingsOpen) dictionaryLocation.current = location
   else {
@@ -66,7 +68,11 @@ export default function App() {
       document.title = word ? `${decodeURIComponent(word)} · fastdict` : 'fastdict · 查词'
     }
   }, [settingsOpen])
-  const theme = useResolvedTheme(bootstrap.data?.settings.appearance.theme)
+  const animated = bootstrap.data?.settings.appearance.motion !== false
+  const theme = useResolvedTheme(bootstrap.data?.settings.appearance.theme ?? readCachedTheme())
+  useLayoutEffect(() => {
+    document.documentElement.dataset.animated = String(animated)
+  }, [animated])
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     // Start the shared runtime alongside lookup, before any article iframe exists.
@@ -87,13 +93,20 @@ export default function App() {
       void client.cancelQueries().then(() => client.resetQueries())
     }
     window.addEventListener('fastdict:connection', reset)
-    return () => window.removeEventListener('fastdict:connection', reset)
+    const sync = (event: StorageEvent) => {
+      if (event.key === connectionKey || event.key === null) reset()
+    }
+    window.addEventListener('storage', sync)
+    return () => {
+      window.removeEventListener('fastdict:connection', reset)
+      window.removeEventListener('storage', sync)
+    }
   }, [client])
   return (
     <TooltipProvider>
-      <div className="workspace-shell" data-sidebar-collapsed={sidebarCollapsed} data-animated={bootstrap.data?.settings.appearance.motion !== false}>
+      <div className="workspace-shell" data-sidebar-collapsed={sidebarCollapsed} data-animated={animated}>
       <WorkspaceSidebar dictionaryUrl={dictionaryUrl} settingsUrl={settingsLocation.current.pathname + settingsLocation.current.search}
-        animated={bootstrap.data?.settings.appearance.motion !== false}
+        animated={animated}
         settingsOpen={settingsOpen} collapsed={sidebarCollapsed} onCollapsedChange={(collapsed) => {
           setSidebarCollapsed(collapsed)
           sessionStorage.setItem('fastdict.sidebar-collapsed', String(collapsed))

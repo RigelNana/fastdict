@@ -6,6 +6,17 @@
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="安静、可配置的多词典查词服务。" />
     <title>fastdict · 查词</title>
+    <script>
+      try {
+        var pref = localStorage.getItem('fastdict.theme-preference');
+        var dark = pref === 'dark' || (pref !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        if (dark) {
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', '#09090b');
+        }
+      } catch (_) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

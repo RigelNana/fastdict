@@ -108,6 +108,13 @@ impl Engine {
         unsafe { Resources::mount_with(root, mounts, limits) }.context("无效的词典资源绑定")
     }
 
+    /// Mount only explicit resources in an immutable managed revision without opening MDX.
+    pub fn open_resources(root: &Path, mounts: &[ResourceMount], cache_bytes: usize) -> Result<Resources> {
+        let root = root.canonicalize().context("无法打开托管词典目录")?;
+        ensure!(root.is_dir(), "托管词典根路径不是目录");
+        Self::mount_resources(&root, mounts, cache_bytes)
+    }
+
     pub fn shares_source(&self, source: &Path, cache_bytes: usize) -> bool {
         if self.dictionary_budget > cache_bytes / 2 { return false; }
         if self.source == source { return true; }

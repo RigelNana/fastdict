@@ -1,4 +1,4 @@
-use fastdict::{api::{ServeConfig, serve}, uploads::CHUNK_BYTES};
+use fastdict::{api::{ServeConfig, serve}, imports::MAX_BYTES, uploads::CHUNK_BYTES};
 use reqwest::{Client, RequestBuilder};
 use serde_json::{Value, json};
 use std::{io::{Read, Write}, time::Duration};
@@ -63,6 +63,29 @@ async fn chunk_transport_requires_auth_bounds_blocks_and_survives_duplicate_deli
 }
 
 #[tokio::test]
+async fn upload_limit_accepts_fifty_gib_and_preserves_large_offsets() {
+    let s=Server::start().await;
+    assert_eq!(MAX_BYTES,50*1024u64*1024*1024);
+    for files in [json!([{"path":"huge.mdd","size":MAX_BYTES+1}]),
+        json!([{"path":"huge.mdd","size":MAX_BYTES},{"path":"style.css","size":1}])] {
+        let response=s.request("POST","/uploads").json(&json!({"kind":"import","files":files})).send().await.unwrap();
+        assert!(!response.status().is_success());
+        assert!(response.text().await.unwrap().contains("50 GiB"));
+    }
+    let id=s.create(json!([{"path":"huge.mdd","size":MAX_BYTES}]),None).await;
+    // Sparse staging represents earlier blocks; only the final 8 MiB crosses HTTP.
+    // This checks the exact upper boundary and 64-bit offsets without a 50 GiB write.
+    let offset=MAX_BYTES-CHUNK_BYTES as u64;
+    let file=s.data.path().join("uploads").join(&id).join("files/huge.mdd");
+    std::fs::OpenOptions::new().write(true).open(&file).unwrap().set_len(offset).unwrap();
+    assert_eq!(ok(s.request("GET",&format!("/uploads/{id}"))).await["received"],json!([offset]));
+    assert_eq!(s.write(&id,0,offset,vec![0x5a;CHUNK_BYTES]).await["received"],MAX_BYTES);
+    let preview=ok(s.request("POST",&format!("/uploads/{id}/complete"))).await;
+    assert_eq!(preview["files"][0]["size"],MAX_BYTES);
+    ok(s.request("DELETE",&format!("/uploads/{id}"))).await;
+}
+
+#[tokio::test]
 async fn chunked_import_and_resource_publication_preserve_indexes_and_are_idempotent() {
     let s=Server::start().await;
     let mdx=include_bytes!("../../vendor/wodix/crates/wodix/tests/data/basic.mdx");
@@ -93,14 +116,42 @@ async fn chunked_import_and_resource_publication_preserve_indexes_and_are_idempo
     assert_eq!(changed,ok(s.request("POST",&format!("/uploads/{resource}/complete"))).await);
     ok(s.request("DELETE",&format!("/uploads/{resource}"))).await;
     let after=ok(s.request("GET","/suggest?q=fruit&mode=fulltext")).await;assert_eq!(before["items"],after["items"]);
+
+    // ZIP64 source backups must still round-trip through the restore API.
+    let backup=s.request("GET","/backup?include_files=true").send().await.unwrap();
+    assert!(backup.status().is_success());
+    let restored=Server::start().await;
+    let archive=reqwest::multipart::Part::bytes(backup.bytes().await.unwrap().to_vec()).file_name("backup.zip");
+    ok(restored.request("POST","/restore").multipart(reqwest::multipart::Form::new().part("file",archive))).await;
+    let restored_state=ok(restored.request("GET","/bootstrap")).await;
+    assert_eq!(restored_state["dictionaries"][0]["resources"],changed["resources"]);
+    let hits=ok(restored.request("GET","/suggest?q=apple")).await;
+    assert!(!hits["items"].as_array().unwrap().is_empty());
+
+    // Appending resources also accepts files above the former per-dictionary cap.
+    let size=4*1024u64*1024*1024+3;
+    let large=s.create(json!([{"path":"large.mdd","size":size}]),Some(dictionary)).await;
+    let path=s.data.path().join("uploads").join(&large).join("files/large.mdd");
+    std::fs::OpenOptions::new().write(true).open(path).unwrap().set_len(size-3).unwrap();
+    s.write(&large,0,size-3,vec![1,2,3]).await;
+    let published=ok(s.request("POST",&format!("/uploads/{large}/complete"))).await;
+    assert_eq!(published["resources"][1]["size"],size);
+    assert_eq!(published["index_status"]["state"],"ready");
+    ok(s.request("DELETE",&format!("/uploads/{large}"))).await;
+    let rejected=s.request("POST","/uploads").json(&json!({"kind":"resources","dictionary_id":dictionary,"files":[{"path":"more.mdd","size":MAX_BYTES-size}]})).send().await.unwrap();
+    assert!(!rejected.status().is_success());
+    assert!(rejected.text().await.unwrap().contains("50 GiB"));
+    // Replacing a large file counts its new size once, not old + new.
+    let replacement=s.create(json!([{"path":"large.mdd","size":46*1024u64*1024*1024}]),Some(dictionary)).await;
+    ok(s.request("DELETE",&format!("/uploads/{replacement}"))).await;
 }
 
 #[tokio::test]
-#[ignore = "Streams 1 GiB through the HTTP upload API; run explicitly for large-file verification"]
-async fn upload_one_gib_without_a_large_request_or_whole_file_buffer() {
+#[ignore = "Streams over 2 GiB through the HTTP upload API; run explicitly for large-file verification"]
+async fn upload_over_two_gib_without_a_large_request_or_whole_file_buffer() {
     let s=Server::start().await;
-    let size=1024u64*1024*1024+3;
-    let id=s.create(json!([{"path":"one-gib.mdd","size":size}]),None).await;
+    let size=2*1024u64*1024*1024+3;
+    let id=s.create(json!([{"path":"large.mdd","size":size}]),None).await;
     let chunk=vec![0x5a;CHUNK_BYTES];let mut offset=0;
     while offset<size {
         let len=(size-offset).min(CHUNK_BYTES as u64) as usize;
@@ -108,7 +159,7 @@ async fn upload_one_gib_without_a_large_request_or_whole_file_buffer() {
         offset+=len as u64;assert_eq!(result["received"],offset);
     }
     let preview=ok(s.request("POST",&format!("/uploads/{id}/complete"))).await;assert_eq!(preview["files"][0]["size"],size);
-    let path=s.data.path().join("staging").join(&id).join("one-gib.mdd");
+    let path=s.data.path().join("staging").join(&id).join("large.mdd");
     let mut file=std::fs::File::open(path).unwrap();let mut buf=vec![0;CHUNK_BYTES];let mut checked=0;
     loop {let n=file.read(&mut buf).unwrap();if n==0{break}assert!(buf[..n].iter().all(|byte|*byte==0x5a));checked+=n as u64;}
     assert_eq!(checked,size);

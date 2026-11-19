@@ -15,7 +15,8 @@ export interface ChunkTransport<T> {
   complete(id: string): Promise<T>
   discard(id: string): Promise<unknown>
 }
-const maxBytes = 2 * 1024 ** 3
+const maxGiB = 50
+const maxBytes = maxGiB * 1024 ** 3
 const pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 function transient(error: unknown) {
   const status = (error as { status?: number } | null)?.status
@@ -25,7 +26,7 @@ function transient(error: unknown) {
 export async function uploadChunks<T>(files: TransferFile[], transport: ChunkTransport<T>, progress: (state: TransferProgress) => void, wait = pause): Promise<T> {
   const total = files.reduce((sum, file) => sum + file.size, 0)
   if (!files.length || !Number.isSafeInteger(total) || files.some(file => !Number.isSafeInteger(file.size) || file.size < 0)) throw new Error('上传文件无效。')
-  if (total > maxBytes) throw new Error('本次上传总大小不能超过 2 GiB。')
+  if (total > maxBytes) throw new Error(`本次上传总大小不能超过 ${maxGiB} GiB。`)
   let loaded = 0
   progress({ phase: 'uploading', loaded, total })
   const session = await transport.create(files.map(file => ({ path: file.name, size: file.size })))

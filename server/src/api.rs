@@ -52,6 +52,7 @@ struct App {
     catalog: RwLock<Arc<Catalog>>,
     catalog_publication: Mutex<()>,
     readers: Mutex<VecDeque<(String, Arc<Engine>)>>,
+    resource_volumes: Mutex<VecDeque<(String, Arc<wodix::Resources>)>>,
     reader_generation: AtomicU64,
     open_gates: Mutex<HashMap<String, std::sync::Weak<Mutex<()>>>>,
     workers: RwLock<Arc<Semaphore>>,
@@ -158,7 +159,8 @@ impl App {
         let cache = number(&settings["performance"], "cache_mb", 128) * 1024 * 1024 / max;
         let root = self.root(d);
         let mut resources = d.resources.iter().filter(|r| r.enabled).collect::<Vec<_>>();
-        resources.sort_by_key(|r| r.order);
+        // Explicit files override copies packaged inside MDD volumes.
+        resources.sort_by_key(|r| (r.kind == "mdd", r.order));
         let mounts = resources
             .into_iter()
             .map(|r| ResourceMount {
@@ -196,6 +198,36 @@ impl App {
         let mut readers = self.readers.lock().unwrap();
         self.reader_generation.fetch_add(1, Ordering::Release);
         readers.retain(|(key, _)| id.is_some_and(|id| !key.starts_with(&format!("{id}:"))));
+        let mut volumes = self.resource_volumes.lock().unwrap();
+        volumes.retain(|(key, _)| id.is_some_and(|id| !key.starts_with(&format!("{id}:"))));
+    }
+    fn resource_volume(&self, d: &Dictionary, r: &Resource) -> anyhow::Result<Arc<wodix::Resources>> {
+        let key = format!("{}:{}:{}", d.id, d.revision, r.id);
+        {
+            let mut volumes = self.resource_volumes.lock().unwrap();
+            if let Some(index) = volumes.iter().position(|(k, _)| k == &key) {
+                let entry = volumes.remove(index).unwrap();
+                let resources = entry.1.clone();
+                volumes.push_back(entry);
+                return Ok(resources);
+            }
+        }
+        let root = self.root(d);
+        let mount = ResourceMount {
+            path: root.join(&r.path),
+            key: String::new(),
+        };
+        let generation = self.reader_generation.load(Ordering::Acquire);
+        let resources = Arc::new(Engine::open_resources(&root, &[mount], 4 * 1024 * 1024)?);
+        let mut volumes = self.resource_volumes.lock().unwrap();
+        if self.reader_generation.load(Ordering::Acquire) == generation {
+            volumes.retain(|(k, _)| k != &key);
+            while volumes.len() >= 16 {
+                volumes.pop_front();
+            }
+            volumes.push_back((key, resources.clone()));
+        }
+        Ok(resources)
     }
 }
 
@@ -211,6 +243,13 @@ fn resource_fingerprint(dictionary: &Dictionary) -> blake3::Hash {
         hash.update(&(resource.order as u64).to_le_bytes());
     }
     hash.finalize()
+}
+
+fn disabled_resource_keys(dictionary: &Dictionary) -> HashSet<String> {
+    let enabled = dictionary.resources.iter().filter(|r| r.enabled && r.kind != "mdd")
+        .map(|r| imports::resource_key(&r.key)).collect::<HashSet<_>>();
+    dictionary.resources.iter().filter(|r| !r.enabled && r.kind != "mdd")
+        .map(|r| imports::resource_key(&r.key)).filter(|key| !enabled.contains(key)).collect()
 }
 async fn blocking<T: Send + 'static>(
     state: Shared,
@@ -237,7 +276,14 @@ fn origin_allowed(app: &App, origin: &str, host: &str) -> bool {
             .split(',')
             .any(|o| !o.is_empty() && o == origin)
         || (app.config.listen.ip().is_loopback()
-            && matches!(origin, "http://localhost:5173" | "http://127.0.0.1:5173"))
+            && matches!(
+                origin,
+                "http://localhost:5173"
+                    | "http://127.0.0.1:5173"
+                    | "tauri://localhost"
+                    | "http://tauri.localhost"
+                    | "https://tauri.localhost"
+            ))
 }
 fn host_allowed(app: &App, host: &str) -> bool {
     let Ok(url) = url::Url::parse(&format!("http://{host}")) else {
@@ -265,6 +311,7 @@ fn host_allowed(app: &App, host: &str) -> bool {
         .is_some_and(|u| u.host_str() == Some(name))
 }
 async fn guard(State(app): State<Shared>, request: Request, next: Next) -> Response {
+    let immutable_asset = is_versioned_asset(request.uri().path());
     let host = request
         .headers()
         .get(header::HOST)
@@ -352,6 +399,18 @@ async fn guard(State(app): State<Shared>, request: Request, next: Next) -> Respo
         return ApiError::bad("Request URI too long").into_response();
     }
     let mut response = next.run(request).await;
+    if !api && response.status() != StatusCode::NOT_MODIFIED {
+        let html = response.headers().get(header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .is_some_and(|value| value.split(';').next() == Some("text/html"));
+        // Content-hashed bundles can survive reloads; the HTML shell must discover each release.
+        let cache = if response.status().is_success() && immutable_asset && !html {
+            "public, max-age=31536000, immutable"
+        } else {
+            "no-cache"
+        };
+        response.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static(cache));
+    }
     if api
         && response.status().is_client_error()
         && !response
@@ -384,6 +443,14 @@ async fn guard(State(app): State<Shared>, request: Request, next: Next) -> Respo
     );
     response
 }
+fn is_versioned_asset(path: &str) -> bool {
+    let Some(name) = path.strip_prefix("/assets/") else { return false };
+    if name.contains('/') { return false; }
+    let Some((stem, _)) = name.rsplit_once('.') else { return false };
+    let bytes = stem.as_bytes();
+    bytes.len() > 9 && bytes[bytes.len() - 9] == b'-' && bytes[bytes.len() - 8..].iter()
+        .all(|b| b.is_ascii_alphanumeric() || *b == b'_' || *b == b'-')
+}
 fn cors(response: &mut Response, origin: Option<&str>) {
     if let Some(origin) = origin {
         if let Ok(value) = HeaderValue::from_str(origin) {
@@ -404,7 +471,26 @@ fn cors(response: &mut Response, origin: Option<&str>) {
         }
     }
 }
-pub async fn serve(mut config: ServeConfig) -> anyhow::Result<()> {
+pub struct RunningServer {
+    addr: SocketAddr,
+    shutdown: Option<tokio::sync::oneshot::Sender<()>>,
+    task: tokio::task::JoinHandle<anyhow::Result<()>>,
+}
+
+impl RunningServer {
+    pub fn addr(&self) -> SocketAddr {
+        self.addr
+    }
+
+    pub async fn shutdown(mut self) -> anyhow::Result<()> {
+        if let Some(tx) = self.shutdown.take() {
+            let _ = tx.send(());
+        }
+        self.task.await?
+    }
+}
+
+pub async fn start(mut config: ServeConfig) -> anyhow::Result<RunningServer> {
     if !config.listen.ip().is_loopback() && config.token.as_ref().is_none_or(|t| t.len() < 16) {
         bail!("Non-loopback listen requires a token of at least 16 characters");
     }
@@ -439,6 +525,7 @@ pub async fn serve(mut config: ServeConfig) -> anyhow::Result<()> {
         upload_completion: tokio::sync::Mutex::new(()),
         audio: Mutex::new(AudioCache::default()),
         readers: Mutex::new(VecDeque::new()),
+        resource_volumes: Mutex::new(VecDeque::new()),
         reader_generation: AtomicU64::new(0),
         open_gates: Mutex::new(HashMap::new()),
         workers: RwLock::new(Arc::new(Semaphore::new(number(
@@ -503,12 +590,37 @@ pub async fn serve(mut config: ServeConfig) -> anyhow::Result<()> {
         .with_state(app.clone());
     app.store.log("info", "service", "Service started");
     let listener = tokio::net::TcpListener::bind(address).await?;
-    axum::serve(listener, router)
-        .with_graceful_shutdown(async {
-            let _ = tokio::signal::ctrl_c().await;
-        })
-        .await?;
-    Ok(())
+    let addr = listener.local_addr()?;
+    let warm_app = app.clone();
+    let warmup = tokio::task::spawn_blocking(move || {
+        let snapshot = warm_app.store.snapshot();
+        let max = number(&snapshot.settings["performance"], "max_open_readers", 8);
+        for dictionary in snapshot.dictionaries.iter().filter(|d| d.enabled).take(max) {
+            let _ = warm_app.engine(dictionary);
+        }
+    });
+    let (tx, rx) = tokio::sync::oneshot::channel::<()>();
+    let task = tokio::spawn(async move {
+        let served = axum::serve(listener, router)
+            .with_graceful_shutdown(async {
+                let _ = rx.await;
+            })
+            .await;
+        warmup.abort();
+        served?;
+        Ok(())
+    });
+    Ok(RunningServer {
+        addr,
+        shutdown: Some(tx),
+        task,
+    })
+}
+
+pub async fn serve(config: ServeConfig) -> anyhow::Result<()> {
+    let server = start(config).await?;
+    let _ = tokio::signal::ctrl_c().await;
+    server.shutdown().await
 }
 async fn bootstrap(State(app): State<Shared>) -> Result<Json<Value>> {
     let s = app.store.snapshot();
@@ -651,7 +763,9 @@ async fn lookup(
     let articles = blocking(app, move |app| {
         let engine = app.engine(&d)?;
         let mut articles = engine.lookup(&p.q)?;
+        let disabled_resources = disabled_resource_keys(&d);
         let options = RenderOptions {
+            disabled_resources: disabled_resources.clone(),
             asset_base: base,
             trust_scripts: d.trust_scripts,
             custom_css: d.custom_css,
@@ -681,11 +795,20 @@ async fn lookup(
                 })
                 .collect(),
         };
+        let mut raw_styles: HashMap<String, Option<String>> = HashMap::new();
         for article in &mut articles {
             article.html = render::render_document_with_styles(&article.html, &options, |path| {
-                let bytes = engine.resource(path).ok()?;
-                if bytes.as_ref().len() > 256 * 1024 { return None; }
-                std::str::from_utf8(bytes.as_ref()).ok().map(str::to_owned)
+                let normalized = imports::resource_key(path);
+                if disabled_resources.contains(&normalized) { return None; }
+                if let Some(cached) = raw_styles.get(&normalized) {
+                    return cached.clone();
+                }
+                let loaded = engine.resource(path).ok().and_then(|bytes| {
+                    if bytes.as_ref().len() > 256 * 1024 { return None; }
+                    std::str::from_utf8(bytes.as_ref()).ok().map(str::to_owned)
+                });
+                raw_styles.insert(normalized, loaded.clone());
+                loaded
             })?;
         }
         Ok(articles)
@@ -931,7 +1054,11 @@ async fn settings_update(State(app): State<Shared>, Json(v): Json<Value>) -> Res
         Ok(())
     })?;
     reconfigure_workers(&app, old_count, count).await?;
-    app.evict(None);
+    if old.settings["performance"]["max_open_readers"] != v["performance"]["max_open_readers"]
+        || old.settings["performance"]["cache_mb"] != v["performance"]["cache_mb"]
+    {
+        app.evict(None);
+    }
     Ok(Json(v))
 }
 async fn receive_upload(mut multipart: Multipart, dest: &Path, field_name: &str) -> Result<()> {
@@ -987,7 +1114,7 @@ async fn receive_upload(mut multipart: Multipart, dest: &Path, field_name: &str)
                 return Err(ApiError(
                     StatusCode::PAYLOAD_TOO_LARGE,
                     "upload_limit",
-                    "Upload exceeds 2 GiB".into(),
+                    format!("本次上传总大小不能超过 {} GiB", imports::MAX_GIB),
                 ));
             }
             tokio::io::AsyncWriteExt::write_all(&mut file, &chunk)
@@ -1019,18 +1146,26 @@ async fn import_upload(
     Ok(Json(preview))
 }
 
+fn validate_resource_upload<'a>(dictionary: &Dictionary, root: &Path, files: impl Iterator<Item = (&'a str, u64)>) -> anyhow::Result<()> {
+    let mut projected = imports::list(root)?.into_iter().map(|file| (file.path, file.size)).collect::<HashMap<_, _>>();
+    for (path, size) in files {
+        imports::safe_path(path)?;
+        anyhow::ensure!(path != dictionary.mdx && imports::kind(path) != "mdx", "Cannot replace MDX as a resource");
+        projected.insert(path.to_owned(), size);
+    }
+    let total = projected.values().try_fold(0u64, |sum, size| sum.checked_add(*size)).context("Upload too large")?;
+    anyhow::ensure!(total <= imports::MAX_BYTES, "词典与资源的总大小不能超过 {} GiB", imports::MAX_GIB);
+    anyhow::ensure!(projected.len() <= imports::MAX_FILES, "Too many resources");
+    Ok(())
+}
+
 async fn upload_create(State(app): State<Shared>, Json(spec): Json<uploads::UploadSpec>) -> Result<Json<uploads::Status>> {
     let status = blocking(app, move |app| {
         let _files = app.upload_files.lock().unwrap();
         if let Some(id) = &spec.dictionary_id {
             let dictionary = app.dictionary(id).map_err(|error| anyhow::anyhow!(error.2))?;
             let root = app.root(&dictionary);
-            let existing: u64 = imports::list(&root)?.iter().map(|file| file.size).sum();
-            let added = spec.files.iter().try_fold(0u64, |sum, file| sum.checked_add(file.size)).context("Upload too large")?;
-            anyhow::ensure!(existing.checked_add(added).is_some_and(|total| total <= imports::MAX_BYTES), "词典与资源的总大小不能超过 2 GiB");
-            for file in &spec.files {
-                anyhow::ensure!(!root.join(imports::safe_path(&file.path)?).exists(), "Resource path already exists; choose a different path");
-            }
+            validate_resource_upload(&dictionary, &root, spec.files.iter().map(|file| (file.path.as_str(), file.size)))?;
         }
         uploads::create(&app.config.data_dir, spec)
     }).await?;
@@ -1199,7 +1334,13 @@ async fn commit_import(app: Shared, import_id: String, p: CommitRequest, job: Op
         return Err(ApiError::missing());
     }
     let dictionaries = blocking(app.clone(), move |app| {
-        import_progress(&app, job.as_deref(), "preparing", None, 0);
+        import_progress(
+            &app,
+            job.as_deref(),
+            "preparing",
+            Some("正在校验并复制文件到词典仓库"),
+            0,
+        );
         let stage = app.config.data_dir.join("staging").join(&import_id);
         let preview = imports::inspect(&stage, import_id)?;
         let files: HashMap<_, _> = preview.files.iter().map(|f| (f.path.as_str(), f)).collect();
@@ -1270,14 +1411,32 @@ async fn commit_import(app: Shared, import_id: String, p: CommitRequest, job: Op
                     .find(|v| v.mdx == c.mdx)
                     .map(|v| v.warnings.clone())
                     .unwrap_or_default();
-                let icon = resources
+                let mdx_stem = Path::new(&c.mdx)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("")
+                    .to_lowercase();
+                let image_resources: Vec<_> = resources.iter().filter(|r| r.kind == "image").collect();
+                let icon = image_resources
                     .iter()
+                    .copied()
                     .find(|r| {
-                        r.kind == "image"
-                            && Path::new(&r.path).file_stem().is_some_and(|s| {
-                                matches!(s.to_str(), Some("icon" | "favicon" | "logo"))
-                            })
+                        Path::new(&r.path).file_stem().and_then(|s| s.to_str()).is_some_and(|s| {
+                            matches!(
+                                s.to_ascii_lowercase().as_str(),
+                                "icon" | "favicon" | "logo" | "cover"
+                            )
+                        })
                     })
+                    .or_else(|| {
+                        image_resources.iter().copied().find(|r| {
+                            Path::new(&r.path)
+                                .file_stem()
+                                .and_then(|s| s.to_str())
+                                .is_some_and(|s| s.to_lowercase() == mdx_stem)
+                        })
+                    })
+                    .or_else(|| (image_resources.len() == 1).then(|| image_resources[0]))
                     .map(|r| r.key.clone());
                 let dictionary = Dictionary {
                     id: crate::model::id(),
@@ -1305,7 +1464,14 @@ async fn commit_import(app: Shared, import_id: String, p: CommitRequest, job: Op
                 catalogs.push((dictionary.id.clone(), words));
                 dictionaries.push(dictionary);
             }
-            import_progress(&app, job.as_deref(), "catalog", None, dictionaries.len());
+            let total_words: usize = catalogs.iter().map(|(_, w)| w.len()).sum();
+            import_progress(
+                &app,
+                job.as_deref(),
+                "catalog",
+                Some(&format!("合并写入 {} 条词头索引", total_words)),
+                dictionaries.len(),
+            );
             let _publication = app.catalog_publication.lock().unwrap();
             let mut words = app.store.words()?;
             for (id, entries) in &catalogs {
@@ -1519,17 +1685,23 @@ async fn append_resources(app: Shared, dictionary_id: String, stage: PathBuf, re
         let root = app.config.data_dir.join("revisions").join(&revision);
         let result = (|| -> anyhow::Result<Dictionary> {
             let files = imports::list(&stage)?;
+            validate_resource_upload(&d, &app.root(&d), files.iter().map(|file| (file.path.as_str(), file.size)))?;
             imports::clone_revision(&app.root(&d), &root)?;
             for file in files {
                 if file.kind == "mdx" {
                     bail!("Cannot append MDX as a resource");
                 }
                 let target = root.join(imports::safe_path(&file.path)?);
-                if target.exists() {
-                    bail!("Resource path already exists; choose a different path");
-                }
                 std::fs::create_dir_all(target.parent().unwrap())?;
+                // Replace only the new revision's directory entry, never truncate
+                // a hard-linked file that an existing reader may have mapped.
                 std::fs::rename(stage.join(&file.path), target)?;
+                let mut replaced = false;
+                for resource in d.resources.iter_mut().filter(|resource| resource.path == file.path) {
+                    resource.size = file.size;
+                    replaced = true;
+                }
+                if replaced { continue; }
                 let key = if file.kind == "mdd" {
                     String::new()
                 } else {
@@ -1594,18 +1766,9 @@ async fn resource_entries(
     let limit = p.limit;
     let items = blocking(app, move |app| {
         if r.kind == "mdd" {
-            let root = app.root(&d);
-            let path = root.join(&r.path);
-            let engine = Engine::open(
-                &root.join(&d.mdx),
-                &root,
-                &[ResourceMount {
-                    path: path.clone(),
-                    key: String::new(),
-                }],
-                1024 * 1024,
-            )?;
-            engine.resource_entries(&path, &p.prefix, limit + 1)
+            let path = app.root(&d).join(&r.path);
+            let resources = app.resource_volume(&d, &r)?;
+            resources.entries(&path, &p.prefix, limit + 1).map_err(Into::into)
         } else {
             Ok(if r.key.starts_with(&p.prefix) {
                 vec![(r.key, r.size)]
@@ -1640,7 +1803,7 @@ fn bytes_response(bytes: axum::body::Bytes, path: &str, asset: bool) -> Response
     );
     response.headers_mut().insert(
         header::CACHE_CONTROL,
-        HeaderValue::from_static("private, max-age=300"),
+        HeaderValue::from_static(if asset { "private, max-age=3600" } else { "private, max-age=600" }),
     );
     if asset {
         response.headers_mut().insert(
@@ -1676,13 +1839,8 @@ async fn resource_preview(
     let display = path.clone();
     let bytes = blocking(app, move |app| {
         if r.kind == "mdd" {
-            let root = app.root(&d);
-            let mount = ResourceMount {
-                path: root.join(&r.path),
-                key: String::new(),
-            };
-            let engine = Engine::open(&root.join(&d.mdx), &root, &[mount], 1024 * 1024)?;
-            let bytes = engine.resource(&path)?;
+            let resources = app.resource_volume(&d, &r)?;
+            let bytes = resources.load(&path)?;
             if bytes.as_ref().len() > 32 * 1024 * 1024 {
                 bail!("Preview exceeds 32 MiB");
             }
@@ -1729,6 +1887,9 @@ async fn content(
             "stale_revision",
             "词典资源已更新，请重新查词".into(),
         ));
+    }
+    if disabled_resource_keys(&d).contains(&imports::resource_key(&path)) {
+        return Err(ApiError(StatusCode::NOT_FOUND, "resource_disabled", "资源已停用".into()));
     }
     let display = path.clone();
     let bytes = blocking(app, move |app| {
@@ -2082,8 +2243,8 @@ async fn backup(
     let root=app.root(d);
     for entry in imports::list(&root)?{
      total=total.checked_add(entry.size).context("Backup too large")?;files+=1;
-     if total>imports::MAX_BYTES||files>imports::MAX_FILES{bail!("Source backup exceeds 2 GiB or 20000 files; use configuration-only backup or export dictionaries separately");}
-     archive.start_file(format!("revisions/{}/{}",d.revision,entry.path),options)?;
+     if total>imports::MAX_BYTES||files>imports::MAX_FILES{bail!("Source backup exceeds {} GiB or {} files; use configuration-only backup or export dictionaries separately", imports::MAX_GIB, imports::MAX_FILES);}
+     archive.start_file(format!("revisions/{}/{}",d.revision,entry.path),options.large_file(true))?;
      let mut source=std::fs::File::open(root.join(entry.path))?;
      std::io::copy(&mut source,&mut archive)?;
     }
@@ -2251,7 +2412,7 @@ fn restore_files(app: &App, stage: &Path) -> anyhow::Result<()> {
             let size = entry.size();
             total = total.checked_add(size).context("Backup too large")?;
             if total > imports::MAX_BYTES {
-                bail!("Expanded backup exceeds 2 GiB");
+                bail!("Expanded backup exceeds {} GiB", imports::MAX_GIB);
             }
             let dest = extracted.join(relative);
             if entry.is_dir() {

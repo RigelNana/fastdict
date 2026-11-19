@@ -1,12 +1,32 @@
-import { BookOpen, Database, Download, FileText, Monitor, Palette, ShieldCheck, SpellCheck } from 'lucide-react'
+import { BookOpen, Palette, ServerCog, SlidersHorizontal } from 'lucide-react'
 
 export const settingsCategories = [
-  { id: 'app', label: '通用', icon: Monitor },
-  { id: 'appearance', label: '外观', icon: Palette },
-  { id: 'dictionaries', label: '词典', icon: BookOpen },
-  { id: 'security', label: '连接与安全', icon: ShieldCheck },
-  { id: 'spelling', label: '拼写', icon: SpellCheck },
-  { id: 'backup', label: '备份', icon: Download },
-  { id: 'logs', label: '日志', icon: FileText },
-  { id: 'performance', label: '性能', icon: Database },
+  { id: 'dictionaries', label: '词典与分组', icon: BookOpen },
+  { id: 'appearance', label: '外观与排版', icon: Palette },
+  { id: 'preferences', label: '查词偏好', icon: SlidersHorizontal },
+  { id: 'system', label: '服务与维护', icon: ServerCog },
 ] as const
+
+export type SettingsCategoryId = (typeof settingsCategories)[number]['id']
+
+export function resolveSettingsCategory(segment?: string): SettingsCategoryId {
+  switch (segment) {
+    case 'dictionaries':
+    case 'indexes':
+      return 'dictionaries'
+    case 'appearance':
+      return 'appearance'
+    case 'preferences':
+    case 'app':
+    case 'spelling':
+      return 'preferences'
+    case 'system':
+    case 'security':
+    case 'performance':
+    case 'backup':
+    case 'logs':
+      return 'system'
+    default:
+      return 'dictionaries'
+  }
+}

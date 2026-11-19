@@ -8,6 +8,7 @@ import { api, apiBlob, getConnection } from '@/lib/api'
 import type { Article, Dictionary, LookupResponse, Settings } from '@/lib/types'
 import { articleThemeResource, fetchArticleThemeResource } from '@/lib/article-theme'
 import { articleDocument, dictionaryStorageKey, readArticleStorage, updateArticleStorage } from '@/lib/article-storage'
+import { iconCandidates } from '@/lib/dictionary-icon'
 import darkreaderUrl from 'darkreader/darkreader.js?url'
 
 function ArticleLoading() {
@@ -173,52 +174,106 @@ function ArticleFrame({
   )
 }
 
-export function DictionaryIcon({ dictionary }: { dictionary: Dictionary }) {
-  const [iconUrl, setIconUrl] = useState<string | null>(null)
-  useEffect(() => {
-    setIconUrl(null)
-    const selected = dictionary.icon
-    const resource = dictionary.resources.find(
-      (item) =>
-        item.enabled &&
-        item.kind === 'image' &&
-        (selected
-          ? item.id === selected || item.key === selected || item.path === selected
-          : /(?:^|\/)(?:icon|favicon)\.(?:png|svg|ico|webp)$/i.test(item.path)),
-    )
-    const candidates = resource
-      ? [{ resource, path: '' }]
-      : dictionary.resources
-          .filter((item) => item.enabled && item.kind === 'mdd')
-          .map((item) => ({ resource: item, path: selected || 'icon.png' }))
-    if (!candidates.length) return
-    let active = true
-    let objectUrl: string | undefined
-    void (async () => {
-      for (const candidate of candidates) {
-        try {
-          const query = candidate.path ? `?path=${encodeURIComponent(candidate.path)}` : ''
-          const blob = await apiBlob(
-            `/dictionaries/${dictionary.id}/resources/${candidate.resource.id}/content${query}`,
-          )
-          if (!active) return
-          objectUrl = URL.createObjectURL(blob)
-          setIconUrl(objectUrl)
-          return
-        } catch {
-          /* A missing icon in one mounted volume is not a reading error. */
+const iconCache = new Map<string, Promise<string | null>>()
+const resolvedIcons = new Map<string, string | null>()
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('fastdict:connection', () => {
+    for (const url of resolvedIcons.values()) {
+      if (url) URL.revokeObjectURL(url)
+    }
+    iconCache.clear()
+    resolvedIcons.clear()
+  })
+}
+
+function loadDictionaryIcon(dictionary: Dictionary): Promise<string | null> {
+  const baseUrl = getConnection().base_url
+  const resourceSig = dictionary.resources
+    .filter((item) => item.enabled && (item.kind === 'image' || item.kind === 'mdd'))
+    .map((item) => `${item.id}:${item.key}`)
+    .join(',')
+  const cacheKey = `${baseUrl}|${dictionary.id}|${dictionary.revision}|${dictionary.icon ?? ''}|${resourceSig}`
+  const existing = iconCache.get(cacheKey)
+  if (existing) return existing
+  const missKey = `fastdict.icon-miss:${cacheKey}`
+  try {
+    if (sessionStorage.getItem(missKey) === '1') {
+      resolvedIcons.set(cacheKey, null)
+      const immediate = Promise.resolve(null)
+      iconCache.set(cacheKey, immediate)
+      return immediate
+    }
+  } catch {
+    /* Ignore restricted session storage. */
+  }
+  const candidates = iconCandidates(dictionary)
+  if (!candidates.length) {
+    resolvedIcons.set(cacheKey, null)
+    const empty = Promise.resolve(null)
+    iconCache.set(cacheKey, empty)
+    return empty
+  }
+  const task = (async () => {
+    for (const candidate of candidates) {
+      try {
+        const query = candidate.path ? `?path=${encodeURIComponent(candidate.path)}` : ''
+        const blob = await apiBlob(
+          `/dictionaries/${dictionary.id}/resources/${candidate.resource.id}/content${query}`,
+        )
+        const url = URL.createObjectURL(blob)
+        if (resolvedIcons.size >= 256) {
+          const oldest = resolvedIcons.keys().next().value
+          if (oldest) {
+            const oldUrl = resolvedIcons.get(oldest)
+            if (oldUrl) URL.revokeObjectURL(oldUrl)
+            resolvedIcons.delete(oldest)
+            iconCache.delete(oldest)
+          }
         }
+        resolvedIcons.set(cacheKey, url)
+        return url
+      } catch {
+        /* A missing icon in one mounted volume is not a reading error. */
       }
-    })()
+    }
+    resolvedIcons.set(cacheKey, null)
+    try {
+      sessionStorage.setItem(missKey, '1')
+    } catch {
+      /* Ignore restricted session storage. */
+    }
+    return null
+  })()
+  iconCache.set(cacheKey, task)
+  return task
+}
+
+export function DictionaryIcon({ dictionary }: { dictionary: Dictionary }) {
+  const baseUrl = getConnection().base_url
+  const resourceSig = dictionary.resources
+    .filter((item) => item.enabled && (item.kind === 'image' || item.kind === 'mdd'))
+    .map((item) => `${item.id}:${item.key}`)
+    .join(',')
+  const cacheKey = `${baseUrl}|${dictionary.id}|${dictionary.revision}|${dictionary.icon ?? ''}|${resourceSig}`
+  const [iconUrl, setIconUrl] = useState<string | null>(() => resolvedIcons.get(cacheKey) ?? null)
+  useEffect(() => {
+    if (resolvedIcons.has(cacheKey)) {
+      setIconUrl(resolvedIcons.get(cacheKey) ?? null)
+      return
+    }
+    let active = true
+    void loadDictionaryIcon(dictionary).then((url) => {
+      if (active) setIconUrl(url)
+    })
     return () => {
       active = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [dictionary.id, dictionary.revision, dictionary.icon, dictionary.resources])
+  }, [cacheKey, dictionary])
   return iconUrl ? (
-    <img src={iconUrl} alt="" className="dictionary-icon object-contain" />
+    <img src={iconUrl} alt="" className="dictionary-icon rounded-[4px] object-contain" />
   ) : (
-    <BookOpenText aria-hidden className="dictionary-icon text-primary/70" strokeWidth={1.5} />
+    <BookOpenText aria-hidden className="dictionary-icon text-muted-foreground" strokeWidth={1.6} />
   )
 }
 
@@ -245,6 +300,13 @@ export default function EntrySection({
   useEffect(() => {
     if (expanded) setOpenedWord(word)
   }, [expanded, word])
+  const resourcesKey = useMemo(
+    () =>
+      dictionary.resources
+        .map((item) => `${item.id}:${item.enabled ? 1 : 0}:${item.order}:${item.key}`)
+        .join('|'),
+    [dictionary.resources],
+  )
   const result = useQuery({
     queryKey: [
       'entry',
@@ -255,7 +317,7 @@ export default function EntrySection({
       dictionary.font_family,
       dictionary.trust_scripts,
       dictionary.typography_mode,
-      dictionary.resources,
+      resourcesKey,
     ],
     queryFn: ({ signal }) =>
       api<LookupResponse>(
@@ -267,7 +329,11 @@ export default function EntrySection({
     gcTime: 10 * 60_000,
   })
   return (
-    <AccordionItem value={dictionary.id} className="dictionary-section border-0">
+    <AccordionItem
+      id={`dict-section-${dictionary.id}`}
+      value={dictionary.id}
+      className="dictionary-section border-0"
+    >
       <AccordionTrigger className="dictionary-heading hover:no-underline">
         <span className="flex min-w-0 flex-1 items-center gap-3">
           <DictionaryIcon dictionary={dictionary} />

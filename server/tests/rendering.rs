@@ -1,11 +1,54 @@
 use std::cell::Cell;
 
 use lol_html::{element, rewrite_str, RewriteStrSettings};
-use fastdict::render::{render_document, render_document_with_styles, RenderOptions};
+use fastdict::render::{render_document, render_document_with_styles, rewrite_css, RenderOptions};
+
+#[test]
+fn embedded_svg_icons_survive_css_rewriting_without_becoming_documents() {
+    let base = "https://dictionary.example/api/v1/content/d/r/c/";
+    let icons = [
+        "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=",
+        "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22/%3E",
+    ];
+    let options = RenderOptions {
+        disabled_resources: Default::default(),
+        asset_base: base.into(), trust_scripts: true, custom_css: String::new(),
+        font_family: String::new(), typography_mode: "global".into(),
+        fonts: vec![], stylesheets: vec![], scripts: vec![],
+    };
+    for icon in icons {
+        let css = format!(r#".key{{background-image:url("{icon}")}}.key:hover{{background-image:url(../image/key-hover.svg)}}"#);
+        let rewritten = rewrite_css(&css, base, "styles/main.css");
+        assert!(rewritten.contains(icon));
+        assert!(rewritten.contains(&format!("{base}image/key-hover.svg")));
+        let imports = rewrite_css(&format!(r#"@import "{icon}";@import url("{icon}");@import url({icon});"#), base, "");
+        assert!(!imports.contains("data:image/svg+xml"));
+        assert_eq!(imports.matches("about:blank").count(), 3);
+        let raw = format!(r#"<style>{css}</style><span class="key"></span><span style="background-image:url('{icon}')"></span><a href="{icon}">Link</a><script src="{icon}"></script><object data="{icon}"></object><iframe src="{icon}"></iframe>"#);
+        let html = render_document(&raw, &options).unwrap();
+        let icon_count = Cell::new(0);
+        rewrite_str(&html, RewriteStrSettings {
+            element_content_handlers: vec![element!("*", |element| {
+                for attr in element.attributes() {
+                    assert!(!matches!(attr.name().as_str(), "src" | "href" | "data") || !attr.value().starts_with("data:image/svg+xml"));
+                    if attr.name() == "style" && attr.value().contains("data:image/svg+xml") { icon_count.set(icon_count.get()+1); }
+                }
+                Ok(())
+            })],
+            ..RewriteStrSettings::default()
+        }).unwrap();
+        assert_eq!(icon_count.get(),1);
+        assert!(html.contains("object-src 'none'"));
+        assert!(html.contains("frame-src 'none'"));
+        assert!(!html.contains("<iframe"));
+    }
+    assert!(!rewrite_css("p{background:url(data:text/html,bad);mask:url(data:image/svg+xml-invalid,bad)}", base, "").contains("data:"));
+}
 
 #[test]
 fn safe_mode_css_cannot_create_navigation_elements() {
     let options = RenderOptions {
+        disabled_resources: Default::default(),
         asset_base: "http://127.0.0.1:8791/api/v1/content/dictionary/revision/capability/".into(),
         trust_scripts: false,
         custom_css: String::new(),
@@ -33,6 +76,7 @@ fn safe_mode_css_cannot_create_navigation_elements() {
 #[test]
 fn script_compatibility_is_authorized_early_and_preserves_css_fonts() {
     let mut options = RenderOptions {
+        disabled_resources: Default::default(),
         asset_base: "https://dictionary.example/api/v1/content/d/r/c/".into(),
         trust_scripts: true, custom_css: String::new(), font_family: String::new(),
         typography_mode: "global".into(), fonts: vec![], stylesheets: vec![], scripts: vec![],
@@ -59,6 +103,7 @@ fn script_compatibility_is_authorized_early_and_preserves_css_fonts() {
 #[test]
 fn critical_css_is_inlined_in_place_with_media_paths_and_cascade_preserved() {
     let options = RenderOptions {
+        disabled_resources: Default::default(),
         asset_base: "https://dictionary.example/api/v1/content/d/r/c/".into(),
         trust_scripts: false, custom_css: String::new(), font_family: String::new(),
         typography_mode: "global".into(), fonts: vec![],
@@ -86,6 +131,7 @@ fn critical_css_is_inlined_in_place_with_media_paths_and_cascade_preserved() {
 #[test]
 fn oversized_missing_and_alternate_css_keep_their_links_and_scripts_preload_once() {
     let options = RenderOptions {
+        disabled_resources: Default::default(),
         asset_base: "https://dictionary.example/api/v1/content/d/r/c/".into(),
         trust_scripts: true, custom_css: String::new(), font_family: String::new(),
         typography_mode: "global".into(), fonts: vec![], stylesheets: vec!["missing.css".into()],

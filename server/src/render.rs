@@ -2,7 +2,11 @@ use anyhow::{Context, Result};
 use cssparser::{Parser, ParserInput, ToCss, Token};
 use lol_html::{RewriteStrSettings, element, rewrite_str, text};
 use std::cell::RefCell;
+use std::sync::LazyLock;
 use url::Url;
+
+static DICTIONARY_ROOT: LazyLock<Url> =
+    LazyLock::new(|| Url::parse("https://dictionary.invalid/").expect("valid static URL"));
 
 /// asset_base is an absolute, expiring, dictionary/revision-scoped HTTP capability.
 /// It must never contain the application's bearer token.
@@ -16,6 +20,7 @@ pub struct RenderOptions {
     pub fonts: Vec<(String, String)>,
     pub stylesheets: Vec<String>,
     pub scripts: Vec<String>,
+    pub disabled_resources: std::collections::HashSet<String>,
 }
 
 fn resource_url(value: &str, base: &str, resource_path: &str) -> Option<String> {
@@ -27,7 +32,8 @@ fn resource_url(value: &str, base: &str, resource_path: &str) -> Option<String> 
         return None;
     }
     if let Ok(parsed) = Url::parse(&value) {
-        // Only inert raster/font/audio data are permitted; never SVG or HTML data.
+        // General HTML resource attributes must not accept SVG or HTML data.
+        // CSS image URLs have a separate, image-only SVG allowance below.
         let lower = value.to_ascii_lowercase();
         if parsed.scheme() == "data"
             && [
@@ -45,8 +51,7 @@ fn resource_url(value: &str, base: &str, resource_path: &str) -> Option<String> 
         }
         return None;
     }
-    let root = Url::parse("https://dictionary.invalid/").ok()?;
-    let current = root.join(resource_path.trim_start_matches('/')).ok()?;
+    let current = DICTIONARY_ROOT.join(resource_path.trim_start_matches('/')).ok()?;
     let resolved = current.join(&value).ok()?;
     if resolved.host_str() != Some("dictionary.invalid") {
         return None;
@@ -73,8 +78,20 @@ fn css_string(value: &str) -> String {
     out
 }
 
-fn css_tokens(parser: &mut Parser<'_, '_>, base: &str, path: &str) -> String {
-    let mut out = String::new();
+fn css_resource_url(value: &str, base: &str, path: &str, import: bool) -> Option<String> {
+    let value = value.trim();
+    // SVG loaded as a CSS image cannot execute scripts or fetch external resources.
+    // Preserve embedded dictionary icons, without permitting SVG documents in
+    // HTML attributes or stylesheet imports. Keep the data payload unchanged.
+    if !import && value.split_once(',').is_some_and(|(metadata, _)| {
+        metadata.split(';').next().is_some_and(|mime| mime.eq_ignore_ascii_case("data:image/svg+xml"))
+    }) {
+        return Some(value.to_owned());
+    }
+    resource_url(value, base, path)
+}
+
+fn css_tokens(parser: &mut Parser<'_, '_>, base: &str, path: &str, out: &mut String) {
     let mut import = false;
     while let Ok(token) = parser.next_including_whitespace_and_comments().cloned() {
         match &token {
@@ -83,16 +100,16 @@ fn css_tokens(parser: &mut Parser<'_, '_>, base: &str, path: &str) -> String {
                 out.push_str("@import");
             }
             Token::QuotedString(value) if import => {
-                out.push_str(&css_string(
-                    &resource_url(value, base, path).unwrap_or_else(|| "about:blank".into()),
-                ));
+                let target =
+                    resource_url(value, base, path).unwrap_or_else(|| "about:blank".into());
+                let _ = cssparser::serialize_string(&target, out);
                 import = false;
             }
             Token::UnquotedUrl(value) => {
                 out.push_str("url(");
-                out.push_str(&css_string(
-                    &resource_url(value, base, path).unwrap_or_else(|| "about:blank".into()),
-                ));
+                let target = css_resource_url(value, base, path, import)
+                    .unwrap_or_else(|| "about:blank".into());
+                let _ = cssparser::serialize_string(&target, out);
                 out.push(')');
                 import = false;
             }
@@ -105,23 +122,25 @@ fn css_tokens(parser: &mut Parser<'_, '_>, base: &str, path: &str) -> String {
                     })
                     .ok();
                 out.push_str("url(");
-                out.push_str(&css_string(
-                    &value
-                        .and_then(|v| resource_url(&v, base, path))
-                        .unwrap_or_else(|| "about:blank".into()),
-                ));
+                let target = value
+                    .and_then(|v| css_resource_url(&v, base, path, import))
+                    .unwrap_or_else(|| "about:blank".into());
+                let _ = cssparser::serialize_string(&target, out);
                 out.push(')');
                 import = false;
             }
             Token::Function(name) => {
-                let nested = parser
-                    .parse_nested_block(|p| {
-                        Ok::<_, cssparser::ParseError<'_, ()>>(css_tokens(p, base, path))
-                    })
-                    .unwrap_or_default();
-                if !name.eq_ignore_ascii_case("expression") {
-                    out.push_str(&token.to_css_string());
-                    out.push_str(&nested);
+                if name.eq_ignore_ascii_case("expression") {
+                    let _ = parser.parse_nested_block(|p| {
+                        while p.next_including_whitespace_and_comments().is_ok() {}
+                        Ok::<_, cssparser::ParseError<'_, ()>>(())
+                    });
+                } else {
+                    let _ = token.to_css(out);
+                    let _ = parser.parse_nested_block(|p| {
+                        css_tokens(p, base, path, out);
+                        Ok::<_, cssparser::ParseError<'_, ()>>(())
+                    });
                     out.push(')');
                 }
             }
@@ -131,29 +150,30 @@ fn css_tokens(parser: &mut Parser<'_, '_>, base: &str, path: &str) -> String {
                     Token::SquareBracketBlock => ']',
                     _ => '}',
                 };
-                out.push_str(&token.to_css_string());
-                let nested = parser
-                    .parse_nested_block(|p| {
-                        Ok::<_, cssparser::ParseError<'_, ()>>(css_tokens(p, base, path))
-                    })
-                    .unwrap_or_default();
-                out.push_str(&nested);
+                let _ = token.to_css(out);
+                let _ = parser.parse_nested_block(|p| {
+                    css_tokens(p, base, path, out);
+                    Ok::<_, cssparser::ParseError<'_, ()>>(())
+                });
                 out.push(end);
             }
             Token::Semicolon => {
                 import = false;
                 out.push(';');
             }
-            _ => out.push_str(&token.to_css_string()),
+            _ => {
+                let _ = token.to_css(out);
+            }
         }
     }
-    out
 }
 
 /// Rewrite a loaded CSS file with its original virtual path, not just its basename.
 pub fn rewrite_css(css: &str, asset_base: &str, resource_path: &str) -> String {
+    let mut out = String::with_capacity(css.len() + 64);
     let mut input = ParserInput::new(css);
-    css_tokens(&mut Parser::new(&mut input), asset_base, resource_path)
+    css_tokens(&mut Parser::new(&mut input), asset_base, resource_path, &mut out);
+    out
 }
 
 /// HTML parser-backed extraction used by full-text indexing and CLI text output.
@@ -243,6 +263,11 @@ pub fn render_document_with_styles(
         "Invalid content capability URL"
     );
     let nonce = uuid::Uuid::new_v4().simple().to_string();
+    let disabled_url = |url: &str| {
+        Url::parse(url).ok().and_then(|url| {
+            url.path().strip_prefix(base.path()).map(|path| percent_encoding::percent_decode_str(path).decode_utf8_lossy().into_owned())
+        }).is_some_and(|path| options.disabled_resources.contains(&crate::imports::resource_key(&path)))
+    };
     let css_text = RefCell::new(String::new());
     let referenced_styles = RefCell::new(std::collections::HashSet::new());
     let referenced_scripts = RefCell::new(std::collections::HashSet::new());
@@ -383,6 +408,14 @@ pub fn render_document_with_styles(
                                 }
                             } else if let Some(url) = resource_url(&value, &options.asset_base, "")
                             {
+                                if disabled_url(&url) {
+                                    if matches!(tag.as_str(), "link" | "script") {
+                                        el.remove();
+                                        return Ok(());
+                                    }
+                                    el.remove_attribute(&name);
+                                    continue;
+                                }
                                 let identity = url.split(['?', '#']).next().unwrap_or(&url).to_owned();
                                 if tag == "link" && el.get_attribute("rel").is_some_and(|rel| rel.split_whitespace().any(|part| part.eq_ignore_ascii_case("stylesheet"))) {
                                     referenced_styles.borrow_mut().insert(identity.clone());
@@ -516,7 +549,7 @@ pub fn render_document_with_styles(
         "<link rel=\"preload\" as=\"script\" href=\"{}\">", html_escape::encode_double_quoted_attribute(url)
     )).collect::<String>();
     Ok(format!(
-        r#"<!doctype html><html data-fastdict-assets="{asset_attribute}" style="background:transparent!important;overflow:hidden!important;color-scheme:light!important"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="viewport" content="width=device-width,initial-scale=1"><script type="application/json" id="fastdict-initial-style">{{}}</script><script nonce="{nonce}">{STYLE_LOAD}</script>{preloads}{compatibility}{mounts}<style>{font_faces}body{{color:#18181b;overflow-wrap:anywhere;{font_rule}}}img,video,svg{{max-width:100%}}</style></head><body data-fastdict-typography="{typography}" data-fastdict-font="{font_attribute}" style="background:transparent!important;overflow:hidden!important"><main id="fastdict-content">{body}</main><style>{custom}
+        r#"<!doctype html><html data-fastdict-assets="{asset_attribute}" style="background:transparent!important;overflow:hidden!important;color-scheme:light!important"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="viewport" content="width=device-width,initial-scale=1"><script type="application/json" id="fastdict-initial-style">{{}}</script><script nonce="{nonce}">{STYLE_LOAD}</script>{preloads}{compatibility}{mounts}<style>{font_faces}body{{color:#18181b;overflow-wrap:break-word;{font_rule}}}img,video,svg{{max-width:100%}}</style></head><body data-fastdict-typography="{typography}" data-fastdict-font="{font_attribute}" style="background:transparent!important;overflow:hidden!important"><main id="fastdict-content">{body}</main><style>{custom}
 html,body{{margin:0;padding:0;background:transparent!important;overflow:hidden!important;min-height:0!important;height:auto!important}}
 #fastdict-content{{display:flow-root;min-width:0}}
 html[data-fastdict-theme=dark]:not([data-fastdict-theme-ready]) #fastdict-content{{visibility:hidden}}
@@ -671,7 +704,7 @@ if(initial?.textContent){
   Promise.all(styles.map(waitForStyle)).then(()=>{
    stylesReady=true;
    const done=()=>{clearTimeout(timer);fontsReady=true;schedule();revealArticle();};
-   const timer=setTimeout(done,700);if(document.fonts)document.fonts.ready.then(done,done);else done();
+   const timer=setTimeout(done,120);if(document.fonts)document.fonts.ready.then(done,done);else done();
   });
  };
  if(document.readyState==='loading')addEventListener('DOMContentLoaded',prepare,{once:true});else prepare();

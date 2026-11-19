@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Bootstrap, Connection } from './types'
 import { uploadChunks, type TransferProgress } from './chunk-upload'
+import { browserStorage, readConnection, saveConnection } from './connection-storage'
+import { readBootstrapCache, writeBootstrapCache } from './bootstrap-cache'
 
 export class ApiError extends Error {
   constructor(
@@ -12,18 +14,25 @@ export class ApiError extends Error {
   }
 }
 
-const connectionKey = 'fastdict.connection'
+export interface DesktopBridge {
+  base_url: string
+  token: string
+  data_dir: string
+  local_only: boolean
+}
+
+export function getDesktopBridge(): DesktopBridge | undefined {
+  if (typeof window === 'undefined') return undefined
+  const bridge = (window as Window & { __FASTDICT_DESKTOP__?: DesktopBridge }).__FASTDICT_DESKTOP__
+  return bridge && typeof bridge.base_url === 'string' ? bridge : undefined
+}
+
 export function getConnection(): Connection {
-  try {
-    const value = JSON.parse(sessionStorage.getItem(connectionKey) ?? '{}') as Partial<Connection>
-    return {
-      base_url:
-        typeof value.base_url === 'string' ? value.base_url : (import.meta.env.VITE_API_URL ?? ''),
-      token: typeof value.token === 'string' ? value.token : '',
-    }
-  } catch {
-    return { base_url: import.meta.env.VITE_API_URL ?? '', token: '' }
+  const bridge = getDesktopBridge()
+  if (bridge?.local_only) {
+    return { base_url: bridge.base_url, token: bridge.token }
   }
+  return readConnection(browserStorage('localStorage'), browserStorage('sessionStorage'), import.meta.env.VITE_API_URL ?? '')
 }
 
 export function setConnection(connection: Connection) {
@@ -44,10 +53,7 @@ export function setConnection(connection: Connection) {
       throw new Error('HTTPS 页面不能连接不安全的 HTTP 服务。')
     }
   }
-  sessionStorage.setItem(
-    connectionKey,
-    JSON.stringify({ base_url, token: connection.token.trim() }),
-  )
+  saveConnection(browserStorage('localStorage'), browserStorage('sessionStorage'), { base_url, token: connection.token.trim() })
   window.dispatchEvent(new Event('fastdict:connection'))
 }
 
@@ -147,9 +153,16 @@ function xhrUpload<T>(path: string, body: FormData | Blob, onProgress: (progress
 }
 
 export function useBootstrap() {
+  const cacheScope = getDesktopBridge()?.local_only ? 'desktop-local' : getConnection().base_url
   return useQuery({
     queryKey: ['bootstrap'],
-    queryFn: ({ signal }) => api<Bootstrap>('/bootstrap', { signal }),
+    queryFn: async ({ signal }) => {
+      const data = await api<Bootstrap>('/bootstrap', { signal })
+      writeBootstrapCache(cacheScope, data)
+      return data
+    },
+    initialData: () => readBootstrapCache(cacheScope),
+    initialDataUpdatedAt: 0,
     staleTime: 10_000,
     refetchInterval: (query) =>
       query.state.data?.stats.jobs.some((job) => job.state === 'running' || job.state === 'queued')

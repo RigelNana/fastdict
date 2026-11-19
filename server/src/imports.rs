@@ -5,8 +5,16 @@ use std::{
     collections::HashSet,
     path::{Component, Path, PathBuf},
 };
-pub const MAX_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+pub const MAX_GIB: u64 = 50;
+pub const MAX_BYTES: u64 = MAX_GIB * 1024 * 1024 * 1024;
 pub const MAX_FILES: usize = 20000;
+
+/// Match the engine's virtual resource names, including slash and case aliases.
+pub fn resource_key(path: &str) -> String {
+    let path = path.replace('\\', "/");
+    let path = path.split('/').filter(|part| !part.is_empty() && *part != ".").collect::<Vec<_>>().join("/");
+    wodix::Resource { path: &path }.key()
+}
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ImportFile {
     pub path: String,
@@ -82,13 +90,21 @@ pub fn inspect(root: &Path, id: String) -> Result<ImportPreview> {
                 if peers == 1 {
                     return true;
                 }
-                let name = Path::new(&f.path)
+                let stem_lower = stem.to_lowercase();
+                let name_lower = Path::new(&f.path)
                     .file_stem()
                     .unwrap_or_default()
-                    .to_string_lossy();
-                name == stem
-                    || name.starts_with(&format!("{stem}."))
-                    || Path::new(&f.path).starts_with(parent.join(&stem))
+                    .to_string_lossy()
+                    .to_lowercase();
+                name_lower == stem_lower
+                    || name_lower.starts_with(&format!("{stem_lower}."))
+                    || Path::new(&f.path)
+                        .strip_prefix(parent)
+                        .ok()
+                        .and_then(|rel| rel.components().next())
+                        .is_some_and(|first| {
+                            first.as_os_str().to_string_lossy().to_lowercase() == stem_lower
+                        })
             })
             .map(|f| f.path.clone())
             .collect();

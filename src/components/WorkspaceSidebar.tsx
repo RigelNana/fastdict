@@ -5,7 +5,7 @@ import { Dialog as DialogPrimitive } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { settingsCategories } from '@/lib/settings-navigation'
+import { resolveSettingsCategory, settingsCategories } from '@/lib/settings-navigation'
 
 function NavigationLink({ icon: Icon, label, to, active, collapsed, onNavigate, preserveSearch, replace }: {
   icon: LucideIcon; label: string; to: string; active: boolean; collapsed: boolean
@@ -39,7 +39,7 @@ export default function WorkspaceSidebar({ dictionaryUrl, settingsUrl, settingsO
     desktop.addEventListener('change', close)
     return () => desktop.removeEventListener('change', close)
   }, [])
-  const category = location.pathname.split('/')[2]
+  const category = resolveSettingsCategory(location.pathname.split('/')[2])
   function navigation(compact: boolean, onNavigate?: () => void) {
     return (
       <nav className="workspace-navigation" aria-label="主导航">
@@ -51,7 +51,7 @@ export default function WorkspaceSidebar({ dictionaryUrl, settingsUrl, settingsO
           <div className="workspace-settings-navigation" role="group" aria-label="设置分类">
             {settingsCategories.map((item) => (
               <NavigationLink key={item.id} icon={item.icon} label={item.label} to={`/settings/${item.id}`}
-                active={category === item.id || (category === 'indexes' && item.id === 'dictionaries')}
+                active={category === item.id}
                 collapsed={compact} onNavigate={onNavigate} replace />
             ))}
           </div>
@@ -67,11 +67,16 @@ export default function WorkspaceSidebar({ dictionaryUrl, settingsUrl, settingsO
           <span className="workspace-navigation-label">fastdict</span>
         </Link>
         <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full">{navigation(collapsed)}</ScrollArea>
-        <Button variant="ghost" className="workspace-sidebar-toggle" aria-label={collapsed ? '展开导航' : '收起导航'}
-          title={collapsed ? '展开导航' : '收起导航'} onClick={() => onCollapsedChange(!collapsed)}>
-          {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
-          <span className="workspace-navigation-label">收起导航</span>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" className="workspace-sidebar-toggle" aria-label={collapsed ? '展开导航' : '收起导航'}
+              onClick={() => onCollapsedChange(!collapsed)}>
+              {collapsed ? <PanelLeftOpen className="size-[18px] shrink-0" /> : <PanelLeftClose className="size-[18px] shrink-0" />}
+              <span className="workspace-navigation-label">收起导航</span>
+            </Button>
+          </TooltipTrigger>
+          {collapsed && <TooltipContent side="right" sideOffset={8}>展开导航</TooltipContent>}
+        </Tooltip>
       </aside>
       <DialogPrimitive.Root open={mobileOpen} onOpenChange={setMobileOpen}>
         <DialogPrimitive.Trigger asChild>

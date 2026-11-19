@@ -48,7 +48,9 @@ test('rejected chunks do not publish files, and retries are bounded', async () =
 
 test('large-file validation precedes creating server staging, and zero-byte files are completed',async()=>{
   let created=false
-  await assert.rejects(uploadChunks([{name:'huge.mdd',size:2*1024**3+1}],{async create(){created=true}},()=>{}),/2 GiB/)
+  for (const sizes of [[50*1024**3+1], [25*1024**3,25*1024**3+1]]) {
+    await assert.rejects(uploadChunks(sizes.map((size,i)=>({name:`huge.${i}.mdd`,size})),{async create(){created=true}},()=>{}),/50 GiB/)
+  }
   assert.equal(created,false)
   let writes=0
   const result=await uploadChunks([new File([],'empty.css')],{
@@ -56,4 +58,26 @@ test('large-file validation precedes creating server staging, and zero-byte file
   },()=>{})
   assert.equal(result,'done')
   assert.equal(writes,0)
+})
+
+test('50 GiB batches retain exact offsets and progress beyond 32-bit boundaries', async () => {
+  // Virtual file slices exercise the real transfer loop without allocating 50 GiB.
+  const sizes = [3*1024**3,47*1024**3]
+  const received = [0,0]
+  const progress = []
+  const result = await uploadChunks(sizes.map((size,i)=>({
+    name:i===0?'dictionary.mdx':'dictionary.mdd',size,
+    slice(start,end){return {size:end-start}},
+  })), {
+    async create(spec){assert.equal(spec.reduce((sum,f)=>sum+f.size,0),50*1024**3);return{id:'large',chunk_size:8*1024**2}},
+    async write(id,index,offset,body,onProgress){
+      assert.equal(offset,received[index]);assert.ok(body.size<=8*1024**2)
+      received[index]+=body.size;onProgress(body.size);return{received:received[index]}
+    },
+    async complete(){return'done'},async discard(){},
+  },state=>progress.push(state))
+  assert.equal(result,'done')
+  assert.deepEqual(received,sizes)
+  assert.ok(progress.every((p,i)=>Number.isSafeInteger(p.loaded) && (i===0 || p.loaded>=progress[i-1].loaded)))
+  assert.deepEqual(progress.at(-1),{phase:'processing',loaded:50*1024**3,total:50*1024**3})
 })

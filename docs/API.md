@@ -36,7 +36,8 @@ Bridge events from frame: `{type:'fastdict:height',height:number}`, `{type:'fast
 - POST `/imports/<id>/commit` `{dictionaries:[{mdx,name,resources:string[]}]}` -> `{dictionaries:Dictionary[]}`. User edits associations before commit; service owns immutable copies.
 - PUT `/dictionaries/<id>` accepts `{name?,enabled?,icon?,trust_scripts?,custom_css?,font_family?,typography_mode?,resources?:Resource[]}` -> Dictionary.
 - DELETE `/dictionaries/<id>` unregisters and removes derived records, without modifying live mapped files; physical revisions may remain until no readers reference them.
-- POST `/dictionaries/<id>/resources` multipart -> Dictionary (append mounts into a new immutable revision).
+- POST `/dictionaries/<id>/resources` multipart -> Dictionary (add or replace files by managed path in a new immutable revision). Replacements retain binding IDs, virtual keys, order and enabled state; MDX cannot be replaced through this endpoint. Chunked resource uploads use the same publication behavior.
+- Enabled loose resources take precedence over same-key MDD contents. Disabling a loose resource blocks that virtual key, including references from article HTML or CSS imports, unless another enabled loose binding uses the same key.
 - GET `/dictionaries/<id>/resources/<rid>/entries?prefix=&limit=100` -> `{items:[{path,size}],truncated}` (for MDD) or the one file.
 - GET `/dictionaries/<id>/resources/<rid>/content?path=` -> authenticated resource bytes with safe MIME; UI previews through a blob, never executes HTML/JS.
 

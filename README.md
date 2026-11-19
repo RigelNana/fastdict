@@ -35,6 +35,8 @@ cargo run --locked -p fastdict -- lookup hello
 
 远端客户端使用 `FASTDICT_ENDPOINT`、`FASTDICT_TOKEN` 或 `--token-file`。对外监听时必须配置至少 16 字符的令牌；反向代理使用 `FASTDICT_PUBLIC_ORIGIN`，额外允许的管理界面来源使用 `FASTDICT_ALLOWED_ORIGINS`。详见 [架构说明](docs/ARCHITECTURE.md) 和 [API 文档](docs/API.md)。
 
+浏览器会在当前设备保存服务地址和访问令牌，刷新、打开新标签页或重新启动浏览器后自动恢复。旧版会话中的连接会自动迁移；清除本站数据后需要重新填写。
+
 ## 检查
 
 ```sh

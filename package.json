@@ -7,7 +7,11 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "serve": "cargo run -p fastdict -- serve"
+    "serve": "cargo run --release -p fastdict -- serve",
+    "tauri": "tauri",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build",
+    "desktop:appimage": "NO_STRIP=true tauri build --bundles appimage"
   },
   "dependencies": {
     "@dnd-kit/core": "latest",
@@ -31,6 +35,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "latest",
+    "@tauri-apps/cli": "^2.11.2",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
