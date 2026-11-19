@@ -364,7 +364,7 @@ html::-webkit-scrollbar { display: none; }
   color: var(--primary);
 }
 
-/* Search bar: upper-center on Home, sticky top bar on Entry */
+/* Smoothly gliding search bar: upper-center on Home, sticky top bar on Entry */
 .search-shell {
   position: sticky;
   top: 0;
@@ -372,8 +372,9 @@ html::-webkit-scrollbar { display: none; }
   width: 100%;
   border-bottom: 1px solid transparent;
   transition:
-    background-color 140ms ease,
-    border-bottom-color 140ms ease;
+    padding 240ms var(--motion-ease),
+    background-color 200ms ease,
+    border-bottom-color 200ms ease;
 }
 .search-shell[data-entry='false'] {
   padding: max(64px, min(14dvh, 116px)) var(--entry-gutter) 24px;
@@ -381,7 +382,8 @@ html::-webkit-scrollbar { display: none; }
 }
 .search-shell[data-entry='true'] {
   padding: 12px var(--entry-gutter);
-  background: var(--background);
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  backdrop-filter: blur(12px);
   border-bottom-color: color-mix(in srgb, var(--border) 75%, transparent);
 }
 .search-shell-inner {
@@ -389,6 +391,7 @@ html::-webkit-scrollbar { display: none; }
   width: 100%;
   margin-inline: auto;
   max-width: 720px;
+  transition: max-width 240ms var(--motion-ease);
 }
 .search-shell[data-entry='true'] .search-shell-inner {
   max-width: calc(100vw - var(--workspace-sidebar-width, 0px) - (var(--entry-gutter) * 2));
@@ -414,8 +417,9 @@ html::-webkit-scrollbar { display: none; }
     0 1px 2px rgb(0 0 0 / 0.04),
     0 4px 16px rgb(0 0 0 / 0.05);
   transition:
+    min-height 220ms var(--motion-ease),
     border-color 140ms ease,
-    box-shadow 160ms ease,
+    box-shadow 180ms ease,
     background-color 140ms ease;
 }
 .search-shell[data-entry='false'] .search-row {
@@ -843,6 +847,7 @@ html::-webkit-scrollbar { display: none; }
   min-width: 0;
   margin-inline-start: var(--workspace-sidebar-width);
   padding-top: var(--workspace-header-height);
+  transition: margin-inline-start 220ms var(--motion-ease);
 }
 .workspace-sidebar {
   position: fixed;
@@ -855,6 +860,7 @@ html::-webkit-scrollbar { display: none; }
   overflow: hidden;
   background: color-mix(in srgb, var(--muted) 45%, var(--background));
   border-right: 1px solid var(--border);
+  transition: width 220ms var(--motion-ease);
 }
 .workspace-brand {
   display: flex;
