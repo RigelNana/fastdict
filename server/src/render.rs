@@ -551,7 +551,7 @@ pub fn render_document_with_styles(
     Ok(format!(
         r#"<!doctype html><html data-fastdict-assets="{asset_attribute}" style="background:transparent!important;overflow:hidden!important;color-scheme:light!important"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="{csp}"><meta name="viewport" content="width=device-width,initial-scale=1"><script type="application/json" id="fastdict-initial-style">{{}}</script><script nonce="{nonce}">{STYLE_LOAD}</script>{preloads}{compatibility}{mounts}<style>{font_faces}body{{color:#18181b;overflow-wrap:break-word;{font_rule}}}img,video,svg{{max-width:100%}}</style></head><body data-fastdict-typography="{typography}" data-fastdict-font="{font_attribute}" style="background:transparent!important;overflow:hidden!important"><main id="fastdict-content">{body}</main><style>{custom}
 html,body{{margin:0;padding:0;background:transparent!important;overflow:hidden!important;min-height:0!important;height:auto!important}}
-#fastdict-content{{display:flow-root;min-width:0}}
+#fastdict-content{{display:flow-root;min-width:0;padding-inline:8px;box-sizing:border-box}}
 html[data-fastdict-theme=dark]:not([data-fastdict-theme-ready]) #fastdict-content{{visibility:hidden}}
 body[data-reading=true] #fastdict-content :where(p,li,dd){{line-height:inherit}}
 body[data-reading=true] #fastdict-content :where(pre){{white-space:pre-wrap}}
