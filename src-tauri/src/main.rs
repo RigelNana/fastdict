@@ -36,6 +36,22 @@ fn resolve_data_dir(app: &tauri::AppHandle) -> PathBuf {
 }
 
 fn main() {
+    #[cfg(target_os = "linux")]
+    {
+        // Prevent WebKitGTK blank/dark-gray surface caused by DMA-BUF / EGL conflicts
+        // on Wayland compositors (Niri, Hyprland, Sway), NVIDIA, and XWayland AppImages.
+        if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+            // SAFETY: Called single-threaded at process start before spawning threads or GTK.
+            unsafe { std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1") };
+        }
+        if std::env::var_os("GDK_BACKEND").as_deref() == Some(std::ffi::OsStr::new("x11"))
+            && std::env::var_os("EGL_PLATFORM").as_deref() == Some(std::ffi::OsStr::new("wayland"))
+        {
+            // SAFETY: Called single-threaded at process start before spawning threads or GTK.
+            unsafe { std::env::remove_var("EGL_PLATFORM") };
+        }
+    }
+
     let backend_holder: Arc<Mutex<Option<EmbeddedBackend>>> = Arc::new(Mutex::new(None));
     let shutdown_holder = backend_holder.clone();
 
